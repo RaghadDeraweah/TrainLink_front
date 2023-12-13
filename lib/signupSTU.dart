@@ -655,8 +655,8 @@ class _signupStateSTU extends State<signupSTU>{
                     }
                   },                     
                     ) ,
-                  Container(height: 10,)    ,
-                  Container(
+                    Container(height: 10,)    ,
+                    Container(
                 alignment: Alignment.bottomCenter,
                 child :ButtonTheme(                      
                   height: 50,
@@ -861,7 +861,7 @@ class _signupStateSTU extends State<signupSTU>{
                         _selectedInterests = newValue!;
                       },
               ),
-                     Container(
+                    Container(
                       margin: EdgeInsets.fromLTRB(0, 20, 0,20),
                       alignment: Alignment.bottomCenter,
                       child :ButtonTheme(                      
@@ -896,41 +896,14 @@ class _signupStateSTU extends State<signupSTU>{
                                // print(_image!.path);
                                 //print( );
 
-                                bool result=await networkHandler.registerUser(_SID.text,_FName.text,_LName.text,_SBD.text,_SCity.text,_gender.text,
-                               _SEmail.text,_SPhone.text,_Password.text,_Major.text,_GPA.text,ss);
+                              bool result=await networkHandler.registerUser(_SID.text,_FName.text,_LName.text,_SBD.text,_SCity.text,_gender.text,
+                              _SEmail.text,_SPhone.text,_Password.text,_Major.text,_GPA.text,ss);
                                if(result == true){
-                                    _showDialog(context);                                
-                               }else{networkHandler.patchImage(_image!.path,_SID.text);
-                               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));}
-                                
-                               /* Map<String, dynamic> data = {
-                                  "RegNum" : _SID.text,
-                                  "fname" :_FName.text,
-                                  "lname" :_LName.text,
-                                  "BD" :_SBD.text ,
-                                  "city":_SCity.text,
-                                  "gender" :_gender.text,
-                                  "SEmail" :_SEmail.text,
-                                  "SPhone":_SPhone.text,
-                                  "Password": _Password.text,
-                                  "Major":_Major.text,
-                                  "GPa":_GPA.text,
-                                  "Interests":ss,
-                                  };
-                                var response = await networkHandler.post("/register", data);
-                                if (response.statusCode == 200 ||response.statusCode == 201) {
-                                    print('User registered successfully');
-                                    if (_image!.path != null) {
-                                      var imageResponse = await  networkHandler.patchImage(_image!.path,_SID.text);
-                                      if (imageResponse.statusCode == 200) {
-                                      print('pic okkkkkkkkkk');
-                                      }
-                              }
-                                }else if(response.statusCode == 409){
-                                    _showDialog(context);
-                                  }else {
-                                    print('Registration failed: ${response.body}');
-                                  }*/
+                               _showDialog(context);                                
+                               }else{
+                                networkHandler.patchImage(_image!.path,_SID.text);
+                               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+                               }
                               }else{
                                 print("***********invalid**********");
                               }

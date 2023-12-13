@@ -32,7 +32,7 @@ Future get(String url) async {
 
 Future<bool> registerUser(String ID, String Name, String CEmail, String Work , String BD, 
  String city, String CPhone, String Password,String Cwebsite ) async {
-  String? token = await storage.read(key: "token");
+//  String? token = await storage.read(key: "token");
   bool isExist=false;
     //url = formater(url);
   Map<String, dynamic> data ={
@@ -51,7 +51,7 @@ Future<bool> registerUser(String ID, String Name, String CEmail, String Work , S
     Uri.parse('http://localhost:5000/company/register'),
     headers: {
       'Content-Type': 'application/json', // Set the content type to JSON
-      "Authorization": "Bearer $token"
+//      "Authorization": "Bearer $token"
     },
     body:  convert.jsonEncode(<String, dynamic>
     {
@@ -81,9 +81,9 @@ Future<bool> registerUser(String ID, String Name, String CEmail, String Work , S
   }
   return isExist;
 }
- Future<bool> LoginID(String ID, String Password ) async {
+Future<bool> LoginID(String ID, String Password ) async {
     bool isSuccess=false;
-      String? token = await storage.read(key: "token");
+    String? token = await storage.read(key: "token");
     final response = await http.post(
       Uri.parse('http://localhost:5000/company/loginID'),
       
@@ -98,7 +98,7 @@ Future<bool> registerUser(String ID, String Name, String CEmail, String Work , S
   }),
     );
     if (response.statusCode == 200) {
-       isSuccess=true;
+      isSuccess=true;
       // Successful registration
       print('Login success !');
       Map<String, dynamic> output =
@@ -106,8 +106,6 @@ Future<bool> registerUser(String ID, String Name, String CEmail, String Work , S
       print(output["token"]);
       await storage.write(
        key: "token", value: output["token"]);
-
-    // return response.statusCode;
     }else if(response.statusCode == 403){
       isSuccess =false;
       print('ID is incorrect');
@@ -117,6 +115,42 @@ Future<bool> registerUser(String ID, String Name, String CEmail, String Work , S
     }
     return isSuccess;
   }
+Future<bool> LoginEmail(String CEmail, String Password ) async {
+    bool isSuccess=false;
+    String? token = await storage.read(key: "token");
+    final response = await http.post(
+      Uri.parse('http://localhost:5000/company/loginEmail'),
+      
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": "Bearer $token", // Set the content type to JSON
+      },
+      body:  convert.jsonEncode(<String, String>
+      {
+        "CEmail" : CEmail,
+        "Password": Password,
+  }),
+    );
+    if (response.statusCode == 200) {
+      isSuccess=true;
+      // Successful registration
+      print('Login success !');
+      Map<String, dynamic> output =
+      convert.jsonDecode(response.body);
+      print(output["token"]);
+      await storage.write(
+       key: "token", value: output["token"]);
+    }else if(response.statusCode == 403){
+      isSuccess =false;
+      print('CEmail is incorrect');
+    }else {
+      // Handle registration error
+      print('Login failed: ${response.body}');
+    }
+    return isSuccess;
+  }
+
+
 Future<http.StreamedResponse> patchImage( String filepath ,String ID) async {
     var request = http.MultipartRequest('PATCH', Uri.parse('http://localhost:5000/company/add/image'));
     request.fields['ID']=ID;

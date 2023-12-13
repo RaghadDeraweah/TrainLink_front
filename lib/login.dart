@@ -2,17 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:untitled4/BStudent.dart';
 import 'package:untitled4/BCompany.dart';
 import 'package:untitled4/NNavigator.dart';
-class Login extends StatelessWidget{
+class Login extends StatefulWidget{
+  Login({super.key});
+  State<Login> createState() => _MyAppState(); 
+}
+ class _MyAppState extends State<Login>  {
   String? id;
   String email="";
   String? pwd;
+  bool offsecure=true;
   RegExp regex = RegExp(r'^s\d{8}@stu\.najah\.edu$');
+  RegExp gmail = RegExp(r'^[a-zA-Z0-9._%+-]+@gmail\.com$');
+  RegExp yahoo = RegExp(r'^[a-zA-Z0-9._%+-]+@yahoo\.com$');
+  RegExp outlook = RegExp(r'^[a-zA-Z0-9._%+-]+@outlook\.com$');
+
 
   TextEditingController _Email = TextEditingController();
-   TextEditingController _Password = TextEditingController();
+  TextEditingController _Password = TextEditingController();
   GlobalKey<FormState> loginform= GlobalKey();
   final networkHandler = NetworkHandlerS();
   final networkHandlerC = NetworkHandlerC();
+  void _togglePasswordVisibility() {
+    setState(() {
+      offsecure = !offsecure;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,10 +95,12 @@ class Login extends StatelessWidget{
                     }*/
 
                     if(value.contains('@')){
-                      if(!regex.hasMatch(value)){
+                      if(!regex.hasMatch(value) && !gmail.hasMatch(value) && !yahoo.hasMatch(value) && !outlook.hasMatch(value)){
                         print("not match");
-                        return "Login with university email";                      
+                        return "invalid email";                      
                       }
+                      
+
                       else{
                         print("Match");
                       }
@@ -95,15 +111,25 @@ class Login extends StatelessWidget{
                 ),
                 Container(height: 20,),
                 TextFormField( 
+                    
                     controller: _Password,
+                    obscureText: offsecure ,
                     decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                    icon: Icon(Icons.remove_red_eye_outlined,color:  Color.fromARGB(255, 30, 51, 236),),
+                    onPressed: () {
+                          setState(() {
+                            _togglePasswordVisibility();
+                           });
+                    },
+                    ),
                     filled: true,
                     border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.black12),
                     borderRadius: BorderRadius.circular(15), ),                    
                     fillColor: Colors.white,
                     hintText:"Password" ,
-                    icon: Icon(Icons.email,color: Color.fromARGB(255, 23, 34, 189),),
+                    icon: Icon(Icons.key,color: Color.fromARGB(255, 23, 34, 189),),
                     focusedBorder:  OutlineInputBorder(borderSide: BorderSide(
                       width: 1,
                       color: Color.fromARGB(255, 30, 51, 236),    ),
@@ -148,18 +174,37 @@ class Login extends StatelessWidget{
                           print(_Email.text);
                           print(_Password.text);
                           if(_Email.text.length==5){
-                          bool result =await networkHandlerC.LoginID(_Email.text, _Password.text);
-                          if(result==true){ 
-                            print("success Login.....");
-                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainNavigator() ));}
+                            bool result =await networkHandlerC.LoginID(_Email.text, _Password.text);
+                            if(result==true){ 
+                              print("success Login.....");
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainNavigator() ));}
 
-                          else{print("Failed Login.....");}  
+                            else{print("Failed Login.....");}  
                           }
-                          else{bool result =await networkHandler.LoginStudentID(_Email.text, _Password.text);
-                          if(result==true){ 
-                            print("success Login.....");}
+                          else if(_Email.text.length==8){
+                            bool result =await networkHandler.LoginStudentID(_Email.text, _Password.text);
+                            if(result==true){ 
+                              print("success Login.....");}
 
-                          else{print("Failed Login.....");}}
+                            else{print("Failed Login.....");}
+                          }
+                          else if(regex.hasMatch(_Email.text)){
+                            bool result =await networkHandler.LoginStudentFmail(_Email.text, _Password.text);
+                            if(result==true){ 
+                              print("success Login.....");}
+
+                            else{print("Failed Login.....");}
+                          }
+                          if(gmail.hasMatch(_Email.text) || yahoo.hasMatch(_Email.text) || outlook.hasMatch(_Email.text)){
+                            bool result =await networkHandlerC.LoginEmail(_Email.text, _Password.text);
+                            if(result==true){ 
+                              print("success Login.....");
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainNavigator() ));}
+
+                            else{print("Failed Login.....");}  
+                    
+                          }
+                          
                         }else{
                           print("invalid");
                         }

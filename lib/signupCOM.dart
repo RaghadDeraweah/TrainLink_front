@@ -689,7 +689,6 @@ class _signupStateCOM extends State<signupCOM>{
                                 networkHandler.patchImage(_image!.path,_CID.text);
                                 print("Inside False");
                                 Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));}
-                                //networkHandler.patchImage(_image!.path,_CID.text);
                               }else{
                                 print("***********invalid**********");
                               }
