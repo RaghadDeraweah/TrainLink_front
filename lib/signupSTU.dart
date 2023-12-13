@@ -10,9 +10,56 @@ import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:untitled4/login.dart';
 import 'package:untitled4/BStudent.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 
+Future<void> uploadFile() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['pdf'],
+  );
 
+  if (result != null) {
+    File file = File(result.files.single.path!);
+    print(file.path);
 
+   /* var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://your-server/upload'),
+    );
+
+    request.files.add(http.MultipartFile.fromBytes(
+      'pdf',
+      await file.readAsBytes(),
+      filename: 'document.pdf',
+    ));
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      print('File uploaded successfully');
+    } else {
+      print('File upload failed');
+    }*/
+  }else{
+    print("failddddddddddddd");
+  }
+}
+class FileUploadButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialButton(
+      child: Text('UPLOAD FILE'),
+      onPressed: () async {
+        var picked = await FilePicker.platform.pickFiles();
+
+        if (picked != null) {
+          print(picked.files.first.name);
+        }
+      },
+    );
+  }
+}
 
 class signupSTU extends StatefulWidget {
    signupSTU({super.key});
@@ -49,6 +96,7 @@ class _signupStateSTU extends State<signupSTU>{
    //For Packeges
   FocusNode focusNode = FocusNode();
   File? _image;
+    File? cv;
   final ImagePicker _picker = ImagePicker();
   final _phoneFormatter = FilteringTextInputFormatter.digitsOnly;
   
@@ -163,6 +211,7 @@ class _signupStateSTU extends State<signupSTU>{
     }
     return double.tryParse(s) != null;
   }
+
   bool containsNumbersOrSymbols(String value) {
     // Define a regular expression pattern to match any numbers or symbols.
     RegExp pattern = RegExp(r'[0-9!@#\$%^&*()]');
@@ -171,6 +220,19 @@ class _signupStateSTU extends State<signupSTU>{
     return pattern.hasMatch(value);
   }
   //end functins
+  String? filePath;
+  Future<void> pickPDF() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        cv = File(result.files.single.path!);
+      });
+    }
+  }
  
   @override
   void initState() {
@@ -184,7 +246,7 @@ class _signupStateSTU extends State<signupSTU>{
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body:Stack(
-        children: [ Container( child:Image.asset("images/signuppic.png", fit: BoxFit.cover, width: 500, height: 1080,), ),        
+        children: [ Container( child:Image.asset("images/signimg.png", fit: BoxFit.cover, width: 500, height: 1080,), ),        
           Positioned(
           bottom: 0, 
           child: Container( 
@@ -226,7 +288,7 @@ class _signupStateSTU extends State<signupSTU>{
                         hintText:"First Name" ,
                         /*focusedBorder:  OutlineInputBorder(
                         borderSide: BorderSide(
-                        color: Color.fromARGB(255, 14, 31, 182),    ),
+                        color:Color.fromARGB(255, 10, 1, 71),    ),
                         borderRadius: BorderRadius.circular(15), 
                           ),*/
                     ),
@@ -296,7 +358,7 @@ class _signupStateSTU extends State<signupSTU>{
                     ),    
                   /*focusedBorder:  OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color.fromARGB(255, 14, 31, 182),   
+                      color:Color.fromARGB(255, 10, 1, 71),   
                        ),
                       borderRadius: BorderRadius.circular(15), 
                       ),*/
@@ -425,7 +487,7 @@ class _signupStateSTU extends State<signupSTU>{
                         title:Text("Male",style: TextStyle(fontSize: 18),),
                         value: "Male", 
                         groupValue:gender,
-                        activeColor: Color.fromARGB(255, 14, 31, 182),
+                        activeColor:Color.fromARGB(255, 10, 1, 71),
                         onChanged:(val){setState(() {
                          gender=val;
                         _gender.text=val!;
@@ -436,7 +498,7 @@ class _signupStateSTU extends State<signupSTU>{
                       flex: 1,
                       child:RadioListTile(title:Text("Female",style: TextStyle(fontSize: 18),),
                       value: "Female",
-                      activeColor: Color.fromARGB(255, 14, 31, 182),
+                      activeColor:Color.fromARGB(255, 10, 1, 71),
                       groupValue: gender, 
                        onChanged:(val){setState(() {
                         gender=val;
@@ -457,7 +519,7 @@ class _signupStateSTU extends State<signupSTU>{
                        splashColor:  Colors.amber,
                       child: Text("Save",style: TextStyle(fontSize: 25,),),
                       textColor: Colors.white,
-                      color: Color.fromARGB(255, 14, 31, 182),
+                      color:Color.fromARGB(255, 10, 1, 71),
                       onPressed:(){
                           
                        if( signupSform.currentState!.validate()){
@@ -632,7 +694,7 @@ class _signupStateSTU extends State<signupSTU>{
                   },
                     ), 
                     Container(height: 10,),
-                    TextFormField(
+                    /*TextFormField(
                       controller: _ConfirmPassword,
                       style: TextStyle(fontSize: 17),
                       obscureText: true,
@@ -654,20 +716,32 @@ class _signupStateSTU extends State<signupSTU>{
                     return"not match with password";
                     }
                   },                     
-                    ) ,
+                    ) ,*/
+                    Container(
+                    alignment: Alignment.bottomCenter,
+                    child :ButtonTheme(                      
+                    height: 40,
+                    minWidth: 390,
+                    shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
+                    child: MaterialButton(
+                    onPressed: () => pickPDF(),
+                    child: Text('Pick PDF'),
+                    textColor: Colors.white,
+                    color:Color.fromARGB(255, 10, 1, 71),
+                   ),),),
                     Container(height: 10,)    ,
                     Container(
-                alignment: Alignment.bottomCenter,
-                child :ButtonTheme(                      
-                  height: 50,
-                  minWidth: 200,
+                    alignment: Alignment.bottomCenter,
+                    child :ButtonTheme(                      
+                    height: 50,
+                    minWidth: 200,
                     shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
                     child :MaterialButton (
                        highlightColor: Colors.amber,
                        splashColor:  Colors.amber,
                       child: Text("Save",style: TextStyle(fontSize: 25,),),
                       textColor: Colors.white,
-                      color: Color.fromARGB(255, 14, 31, 182),
+                      color:Color.fromARGB(255, 10, 1, 71),
                         onPressed:(){
                           
                         if( signupSform.currentState!.validate()){
@@ -677,7 +751,9 @@ class _signupStateSTU extends State<signupSTU>{
                           print(_SID.text);
                           print(_SPhone.text);
                           print(_Password.text);
-                          print(_ConfirmPassword.text);
+                          print(_Password.text);
+                          print(cv!.path);
+                          //print(_ConfirmPassword.text);
 
                         }else{
                           print("**********invalid*****************");
@@ -796,7 +872,7 @@ class _signupStateSTU extends State<signupSTU>{
                     fillColor: Colors.white,
                     hintText:"Enter GPA" ,
                     focusedBorder:  OutlineInputBorder(borderSide: BorderSide(
-                      color: Color.fromARGB(255, 14, 31, 182),    ),
+                      color:Color.fromARGB(255, 10, 1, 71),    ),
                       borderRadius: BorderRadius.circular(15), 
                       ),
                 ),
@@ -825,8 +901,8 @@ class _signupStateSTU extends State<signupSTU>{
                       dialogHeight: 160,
                       items: _feilds,
                       
-                      title: Text("Interests",style: TextStyle(color: Color.fromARGB(255, 14, 31, 182)),),
-                      selectedColor:Color.fromARGB(255, 14, 31, 182),
+                      title: Text("Interests",style: TextStyle(color:Color.fromARGB(255, 10, 1, 71)),),
+                      selectedColor:Color.fromARGB(255, 10, 1, 71),
                       decoration: BoxDecoration(                       
                         color: Color.fromARGB(255, 255, 255, 255),
                         borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -873,7 +949,7 @@ class _signupStateSTU extends State<signupSTU>{
                             splashColor:  Colors.amber,
                             child: Text("Sign Up",style: TextStyle(fontSize: 25,),),
                             textColor: Colors.white,
-                            color: Color.fromARGB(255, 14, 31, 182),
+                            color:Color.fromARGB(255, 10, 1, 71),
                               onPressed:() async {
                                 _SCity.text =cityValue!;
                               if( signupSform.currentState!.validate()){
@@ -902,6 +978,7 @@ class _signupStateSTU extends State<signupSTU>{
                                _showDialog(context);                                
                                }else{
                                 networkHandler.patchImage(_image!.path,_SID.text);
+                                networkHandler.uploadFile(cv!.path,_SID.text);
                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
                                }
                               }else{
@@ -917,6 +994,13 @@ class _signupStateSTU extends State<signupSTU>{
                   ],
                 ),
                 ),
+               /* SingleChildScrollView(
+                child: ElevatedButton(
+                 // style: ButtonStyle(),
+              onPressed: () => pickPDF(),
+              child: Text('Pick PDF'),
+            ),
+                ),*/
                 ],
                 ),
               ),
@@ -956,7 +1040,7 @@ class _signupStateSTU extends State<signupSTU>{
           child: IconButton(
             icon: Icon(
               Icons.camera_alt,
-              color: Color.fromARGB(255, 14, 31, 182),
+              color:Color.fromARGB(255, 10, 1, 71),
               size: 28.0,
             ),
             onPressed:  _getImage,

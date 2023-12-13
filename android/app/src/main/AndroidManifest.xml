@@ -1,7 +1,31 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools">
+     <!-- Provide required visibility configuration for API level 30 and above -->
+<queries>
+  <!-- If your app checks for SMS support -->
+  <intent>
+    <action android:name="android.intent.action.VIEW" />
+    <data android:scheme="sms" />
+  </intent>
+  <!-- If your app checks for call support -->
+  <intent>
+    <action android:name="android.intent.action.VIEW" />
+    <data android:scheme="tel" />
+  </intent>
+  <!-- If your application checks for inAppBrowserView launch mode support -->
+  <intent>
+    <action android:name="android.support.customtabs.action.CustomTabsService" />
+  </intent>
+  <intent>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="https" />
+</intent>
+</queries>
     <application
         android:label="untitled4"
         android:name="${applicationName}"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -10,6 +34,7 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
+            android:requestLegacyExternalStorage="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
@@ -29,5 +54,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <provider android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
+        <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/filepaths"
+            tools:replace="android:resource" />
+        </provider>
     </application>
 </manifest>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "653718969710",
+    "project_id": "trainlink-13a34",
+    "storage_bucket": "trainlink-13a34.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653718969710:android:d5b65b2453887c5aaa757f",
+        "android_client_info": {
+          "package_name": "com.example.untitled4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMKADP27HFwqKqGJlbmLyCTURRc2iF5Ik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

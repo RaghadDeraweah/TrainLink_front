@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:untitled4/login.dart';
 import 'package:untitled4/signup.dart';
-import 'package:untitled4/NNavigator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 //import 'package:untitled4/signup1.dart';
@@ -33,7 +32,7 @@ class welcome extends StatefulWidget{
           child: Stack(
             children: [
               Container(
-                child:Image.asset("images/WelcomeP.png",
+                child:Image.asset("images/WelcomePP.png",
                 fit: BoxFit.cover,
                 width: 500,
                 ), 
@@ -48,11 +47,13 @@ class welcome extends StatefulWidget{
                   shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20.0),),
                   child :MaterialButton (
-                    child: Text("Login",style: TextStyle(fontSize: 22,),),
+                    child: Text("LOGIN",style: TextStyle(fontSize: 28,),),
                       textColor: Colors.white,
                       color: Color.fromARGB(255 ,248, 154, 0),
                       onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(builder: (context) => Login()));
+                      print("pressed");
+                     // Navigator.of(context).push(MaterialPageRoute(builder: (context) => FilePickerExample()));
                       print("pressed");
                       },), 
                   ),
@@ -67,7 +68,7 @@ class welcome extends StatefulWidget{
                 child: ButtonTheme(
                   shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
                   child :MaterialButton (
-                    child: Text("Sign Up",style: TextStyle(fontSize: 22,),),
+                    child: Text("SIGNUP",style: TextStyle(fontSize: 28,),),
                     textColor: Colors.white,
                     color: Color.fromARGB(255 ,248, 154, 0),
                     onPressed: () {

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:untitled4/BStudent.dart';
 import 'package:untitled4/BCompany.dart';
-import 'package:untitled4/NNavigator.dart';
+import 'package:untitled4/HomePage.dart';
+import 'package:untitled4/student/HomeStu.dart';
+
 class Login extends StatefulWidget{
   Login({super.key});
   State<Login> createState() => _MyAppState(); 
@@ -34,7 +37,7 @@ class Login extends StatefulWidget{
       body:Stack(
         children: [
           Container(
-              child:Image.asset("images/loginpic.png",
+              child:Image.asset("images/loginimg.png",
               fit: BoxFit.cover,
               width: 500,
               height: 1080,
@@ -74,10 +77,10 @@ class Login extends StatefulWidget{
                     borderRadius: BorderRadius.circular(15), ),                    
                     fillColor: Colors.white,
                     hintText:"Email or ID" ,
-                    icon: Icon(Icons.email,color: Color.fromARGB(255, 23, 34, 189),),
+                    icon: Icon(Icons.email,color: Color.fromARGB(255, 10, 1, 71),),
                     focusedBorder:  OutlineInputBorder(borderSide: BorderSide(
                       width: 1,
-                      color: Color.fromARGB(255, 30, 51, 236),    ),
+                      color: Color.fromARGB(255, 10, 1, 71),    ),
                       borderRadius: BorderRadius.circular(15), 
                       ),
                 ),
@@ -116,7 +119,7 @@ class Login extends StatefulWidget{
                     obscureText: offsecure ,
                     decoration: InputDecoration(
                     suffixIcon: IconButton(
-                    icon: Icon(Icons.remove_red_eye_outlined,color:  Color.fromARGB(255, 30, 51, 236),),
+                    icon: Icon(Icons.remove_red_eye_outlined,color:  Color.fromARGB(255, 10, 1, 71),),
                     onPressed: () {
                           setState(() {
                             _togglePasswordVisibility();
@@ -129,10 +132,10 @@ class Login extends StatefulWidget{
                     borderRadius: BorderRadius.circular(15), ),                    
                     fillColor: Colors.white,
                     hintText:"Password" ,
-                    icon: Icon(Icons.key,color: Color.fromARGB(255, 23, 34, 189),),
+                    icon: Icon(Icons.key,color: Color.fromARGB(255, 10, 1, 71),),
                     focusedBorder:  OutlineInputBorder(borderSide: BorderSide(
                       width: 1,
-                      color: Color.fromARGB(255, 30, 51, 236),    ),
+                      color: Color.fromARGB(255, 10, 1, 71),    ),
                       borderRadius: BorderRadius.circular(15), 
                       ),
                 ),                  
@@ -177,31 +180,43 @@ class Login extends StatefulWidget{
                             bool result =await networkHandlerC.LoginID(_Email.text, _Password.text);
                             if(result==true){ 
                               print("success Login.....");
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainNavigator() ));}
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));}
 
                             else{print("Failed Login.....");}  
                           }
                           else if(_Email.text.length==8){
                             bool result =await networkHandler.LoginStudentID(_Email.text, _Password.text);
                             if(result==true){ 
-                              print("success Login.....");}
+                              print("success Login.....");
+                               Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomeStu(0) ));}
 
                             else{print("Failed Login.....");}
                           }
                           else if(regex.hasMatch(_Email.text)){
                             bool result =await networkHandler.LoginStudentFmail(_Email.text, _Password.text);
                             if(result==true){ 
-                              print("success Login.....");}
+                              print("success Login.....");
+                               Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));
+                              }
 
-                            else{print("Failed Login.....");}
+                            else{
+                              setState(() {
+                                loginform.printInfo(info:"invalid email");
+                               // return "invalid email";
+                              }); }
                           }
                           if(gmail.hasMatch(_Email.text) || yahoo.hasMatch(_Email.text) || outlook.hasMatch(_Email.text)){
                             bool result =await networkHandlerC.LoginEmail(_Email.text, _Password.text);
                             if(result==true){ 
                               print("success Login.....");
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainNavigator() ));}
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));}
 
-                            else{print("Failed Login.....");}  
+                            else{print("Failed Login.....");
+                             /*setState(() {
+                                loginform.printInfo(info:"invalid email",printFunction: GetUtils.);
+                               // return "invalid email";
+                              });*/
+                            }  
                     
                           }
                           

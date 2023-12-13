@@ -151,7 +151,7 @@ class _signupStateCOM extends State<signupCOM>{
       resizeToAvoidBottomInset: false,
       body:Stack(
         children: [ 
-          Container( child:Image.asset("images/signuppic.png", fit: BoxFit.cover, width: 500, height: 1080,), ),        
+          Container( child:Image.asset("images/signimg.png", fit: BoxFit.cover, width: 500, height: 1080,), ),        
           Positioned(
           bottom: 0, 
           child: Container( 
@@ -228,7 +228,7 @@ class _signupStateCOM extends State<signupCOM>{
                     ),    
                   /*focusedBorder:  OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color.fromARGB(255, 14, 31, 182),   
+                      color:Color.fromARGB(255, 10, 1, 71),   
                        ),
                       borderRadius: BorderRadius.circular(15), 
                       ),*/
@@ -391,7 +391,7 @@ class _signupStateCOM extends State<signupCOM>{
                        splashColor:  Colors.amber,
                       child: Text("Save",style: TextStyle(fontSize: 25,),),
                       textColor: Colors.white,
-                      color: Color.fromARGB(255, 14, 31, 182),
+                      color:Color.fromARGB(255, 10, 1, 71),
                       onPressed:(){
                           
                        if( signupCform.currentState!.validate()){
@@ -527,7 +527,7 @@ class _signupStateCOM extends State<signupCOM>{
                             splashColor:  Colors.amber,
                             child: Text("Save",style: TextStyle(fontSize: 25,),),
                             textColor: Colors.white,
-                            color: Color.fromARGB(255, 14, 31, 182),
+                            color:Color.fromARGB(255, 10, 1, 71),
                               onPressed:(){
                                 
                               if( signupCform.currentState!.validate()){
@@ -663,7 +663,7 @@ class _signupStateCOM extends State<signupCOM>{
                             splashColor:  Colors.amber,
                             child: Text("Sign Up",style: TextStyle(fontSize: 25,),),
                             textColor: Colors.white,
-                            color: Color.fromARGB(255, 14, 31, 182),
+                            color:Color.fromARGB(255, 10, 1, 71),
                               onPressed:() async {
                                 
                               if( signupCform.currentState!.validate()){
@@ -736,7 +736,7 @@ class _signupStateCOM extends State<signupCOM>{
           child: IconButton(
             icon: Icon(
               Icons.camera_alt,
-              color: Color.fromARGB(255, 14, 31, 182),
+              color:Color.fromARGB(255, 10, 1, 71),
               size: 28.0,
             ),
             onPressed:  _getImage,
