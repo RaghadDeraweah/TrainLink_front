@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,23 +25,6 @@ Future<void> uploadFile() async {
     File file = File(result.files.single.path!);
     print(file.path);
 
-   /* var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://your-server/upload'),
-    );
-
-    request.files.add(http.MultipartFile.fromBytes(
-      'pdf',
-      await file.readAsBytes(),
-      filename: 'document.pdf',
-    ));
-
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      print('File uploaded successfully');
-    } else {
-      print('File upload failed');
-    }*/
   }else{
     print("failddddddddddddd");
   }
@@ -163,24 +147,31 @@ class _signupStateSTU extends State<signupSTU>{
 
   //functions
 
-  void _showDialog(BuildContext context) {
+  void _showDialog(BuildContext context , String msg , bool go) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // Return the AlertDialog widget
         return AlertDialog(
-          icon: Icon(Icons.error,color: Colors.red,size: 30,),
+          icon: Icon(Icons.error,color: Colors.red,size: 40,),
           //title: Text('Dialog Title'),
-          content: Text('You already have Accout , Go to Login '),
+          content: Text(msg,style: TextStyle(fontSize: 25),),
           actions: [
             TextButton(
               onPressed: () {
                 // Close the dialog
                 //Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+               if(go){
                Navigator.of(context).popUntil((route) => route.isFirst);
                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+               }
+               else{
+                Navigator.of(context).pop();
+               }
               },
-              child: Text('GO'),
+              child: go 
+              ?Text('GO')
+              :Text('OK')
             ),
           ],
         );
@@ -264,8 +255,9 @@ class _signupStateSTU extends State<signupSTU>{
               child: PageView(//Column(
                 controller: _pageController,
                 children: [
-                
-                Column(
+                SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child :Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -344,7 +336,8 @@ class _signupStateSTU extends State<signupSTU>{
                     ),
                   ],
                 ),
-                Container(height: 20,),
+                Container(height: 10,),
+                //datofbirth
                 Container(
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(15)),),
                 child :TextField(
@@ -384,7 +377,8 @@ class _signupStateSTU extends State<signupSTU>{
               },
             ),
             ),
-                Container(height: 20,),
+               //city
+               /* Container(height: 20,),
                 //MyDropdown(),
                 Container(
                   width: 413,
@@ -475,8 +469,8 @@ class _signupStateSTU extends State<signupSTU>{
                     ),
                   ),
                 ),
-                ), 
-                Container(height: 20,),
+                ),*/ 
+                Container(height: 10,),
                 Text("Your Gender ",style :TextStyle(fontSize: 16),textAlign: TextAlign.start,),
                 Row(
                   children: [
@@ -507,7 +501,49 @@ class _signupStateSTU extends State<signupSTU>{
                     ),
                   ],
                 ),
-                Container(height: 30,),
+                Container(height: 10,),
+                Container(height: 10,),
+                    MultiSelectDialogField(
+                      dialogHeight: 160,
+                      items: _feilds,
+                      
+                      title: Text("Interests",style: TextStyle(color:Color.fromARGB(255, 10, 1, 71)),),
+                      selectedColor:Color.fromARGB(255, 10, 1, 71),
+                      decoration: BoxDecoration(                       
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                        border: Border.all(
+                          color:  Color.fromARGB(255, 133, 133, 133),
+                          //width: ,
+                        ),
+                      ),
+                      buttonIcon: Icon(
+                        
+                        Icons.keyboard_double_arrow_down_outlined,
+                        color: Color.fromARGB(255, 95, 95, 95),
+                      ),
+                      
+                      buttonText: Text(
+                        "Interests",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 107, 106, 106),
+                          fontSize: 17,
+                        ),
+                      ),
+                      onConfirm: (results) {
+                        _selectedInterests = results;
+                      },
+                      onSelectionChanged: (p0) {
+                        setState(() {
+                         _selectedInterests = p0;
+                      });
+                       
+                      },
+                      onSaved: (newValue) {
+                        _selectedInterests = newValue!;
+                      },
+              ),
+                Container(height: 30,),                
                 Container(
                 alignment: Alignment.bottomCenter,
                 child :ButtonTheme(                  
@@ -530,9 +566,9 @@ class _signupStateSTU extends State<signupSTU>{
                           print(_LName.text);
                           print("\n");
                           print(_SBD.text);
-                          print("\n");
-                          print(cityValue);
-                          print("\n");
+                          //print("\n");
+                         // print(cityValue);
+                          //print("\n");
                           print(_gender.text);
 
                         }else{
@@ -544,8 +580,10 @@ class _signupStateSTU extends State<signupSTU>{
                   },*/),
                   ),
                    ), 
+
                 ],
                 ),
+              ),
                 SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child :Column(
@@ -553,7 +591,8 @@ class _signupStateSTU extends State<signupSTU>{
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(height: 40,), 
-                    TextFormField( 
+                    //Email
+                    /*TextFormField( 
                     controller: _SEmail,
                     style: TextStyle(fontSize: 17),
                     decoration: InputDecoration(
@@ -587,9 +626,9 @@ class _signupStateSTU extends State<signupSTU>{
                   //}
                   },
                 ),
-                    Container(height: 10,),
+                    Container(height: 10,),*/
                     TextFormField( 
-                      controller: _SID,
+                    controller: _SID,
                     style: TextStyle(fontSize: 17),
                     decoration: InputDecoration(
                     filled: true,
@@ -720,54 +759,97 @@ class _signupStateSTU extends State<signupSTU>{
                     Container(
                     alignment: Alignment.bottomCenter,
                     child :ButtonTheme(                      
-                    height: 40,
-                    minWidth: 390,
-                    shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
+                    height: 60,
+                    minWidth: 400,
+                    shape: RoundedRectangleBorder(side: BorderSide(color: Color.fromARGB(255, 10, 1, 71)), borderRadius: BorderRadius.circular(20.0)),
                     child: MaterialButton(
                     onPressed: () => pickPDF(),
-                    child: Text('Pick PDF'),
-                    textColor: Colors.white,
-                    color:Color.fromARGB(255, 10, 1, 71),
+                    child: Text('Pick PDF',style: TextStyle(fontSize: 18),),
+                    //textColor: Colors.white,
+                    textColor: Color.fromARGB(255, 10, 1, 71),
+                    color:Colors.white,
+                   // color:Color.fromARGB(255, 10, 1, 71),
                    ),),),
-                    Container(height: 10,)    ,
+                   cv != null
+                   ? Container(margin: EdgeInsets.only(bottom: 10),width: 400, height: 20,alignment: Alignment.center,child: Text("CV Uploaded",style: TextStyle(color:Color.fromARGB(255, 10, 1, 71) ),),) 
+                   : Container(height: 10,)    ,
                     Container(
-                    alignment: Alignment.bottomCenter,
-                    child :ButtonTheme(                      
-                    height: 50,
-                    minWidth: 200,
-                    shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
-                    child :MaterialButton (
-                       highlightColor: Colors.amber,
-                       splashColor:  Colors.amber,
-                      child: Text("Save",style: TextStyle(fontSize: 25,),),
-                      textColor: Colors.white,
-                      color:Color.fromARGB(255, 10, 1, 71),
-                        onPressed:(){
-                          
-                        if( signupSform.currentState!.validate()){
-                           signupSform.currentState!.save();
-                          print("*********valid********");
-                          print(_SEmail.text);
-                          print(_SID.text);
-                          print(_SPhone.text);
-                          print(_Password.text);
-                          print(_Password.text);
-                          print(cv!.path);
-                          //print(_ConfirmPassword.text);
+                      margin: EdgeInsets.fromLTRB(0, 20, 0,20),
+                      alignment: Alignment.bottomCenter,
+                      child :ButtonTheme(                      
+                        height: 50,
+                        minWidth: 200,
+                          shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
+                          child :MaterialButton (
+                            highlightColor: Colors.amber,
+                            splashColor:  Colors.amber,
+                            child: Text("Sign Up",style: TextStyle(fontSize: 25,),),
+                            textColor: Colors.white,
+                            color:Color.fromARGB(255, 10, 1, 71),
+                              onPressed:() async {
+                               // _SCity.text =cityValue!;
+                              if( signupSform.currentState!.validate()){
+                                 signupSform.currentState!.save();
+                                print("*******valid***********");
+                                print(_FName.text);
+                                print(_LName.text);
+                                print(_SBD.text);
+                                //print(_SCity.text);
+                                print(_gender.text);
+                                //(_SEmail.text);
+                                print(_SID.text);
+                                print(_SPhone.text);
+                                print(_Password.text);
+                                //print(_ConfirmPassword.text);
+                                //print(_GPA.text);
+                                //print(_Major.text);
+                                for(int i=0;i<_selectedInterests.length;i++)
+                                ss.add(_selectedInterests[i].Iname);
+                               // print(_image!.path);
+                                //print( );
+                                bool found= await networkHandler.checkinunistudents(_SID.text);
+                                if(found){
+                                  Map<String,dynamic> temp= await networkHandler.fetchUniStudentData(_SID.text);
+                                  bool result=await networkHandler.registerUser(_SID.text,_FName.text,_LName.text,_SBD.text,temp['city'],_gender.text,
+                                  temp['SEmail'],_SPhone.text,_Password.text,temp['Major'],temp['GPa'],ss,temp['stustatus'],temp['startyear'],temp['graduationyear'],temp['universityTraining']);
+                                  if(result == true){
+                                  _showDialog(context,'You already have Accout , Go to Login ',true);                                
+                                  }else{
+                                    networkHandler.patchImage(_image!.path,_SID.text);
+                                    networkHandler.uploadFile(cv!.path,_SID.text);
+                                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+                                  }
+                                  }else{
+                                    _showDialog(context,"Your ID incorrect",false);
+                                  }
 
-                        }else{
-                          print("**********invalid*****************");
-                        }
-                      },
-                      /*onPressed: () {
-                        print("pressed");
-                  },*/),
+                                }else{
+                                  _showDialog(context,"Failed Registeration",false);
+                                }
+
+
+                             /* bool result=await networkHandler.registerUser(_SID.text,_FName.text,_LName.text,_SBD.text,_SCity.text,_gender.text,
+                              _SEmail.text,_SPhone.text,_Password.text,_Major.text,_GPA.text,ss);
+                               if(result == true){
+                               _showDialog(context);                                
+                               }else{
+                                networkHandler.patchImage(_image!.path,_SID.text);
+                                networkHandler.uploadFile(cv!.path,_SID.text);
+                               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+                               }
+                              }else{
+                                print("***********invalid**********");
+                              }*/
+                            },
+                            /*onPressed: () {
+                              print("pressed");
+                        },*/),
                   ),
-                   ),                  
+                   ),                      
                   ],
                 ),
                 ),
-                SingleChildScrollView(
+                /*SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child :Column(
                   children: [
@@ -993,7 +1075,7 @@ class _signupStateSTU extends State<signupSTU>{
                     
                   ],
                 ),
-                ),
+                ),*/
                /* SingleChildScrollView(
                 child: ElevatedButton(
                  // style: ButtonStyle(),

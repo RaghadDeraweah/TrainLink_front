@@ -157,7 +157,7 @@ Future<void> fetchData() async {
                       //color: Colors.yellow,
                     //  child:Expanded(
                       child: DropdownButton<String>(
-                        padding: EdgeInsets.only(left: 15),
+                        //padding: EdgeInsets.only(left: 15),
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.black,

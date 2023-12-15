@@ -11,6 +11,40 @@ class NetworkHandlerS {
 String  baseurl="http://localhost:5000/student" ;
 var log = Logger();
 FlutterSecureStorage storage = FlutterSecureStorage();
+Future<bool> checkinunistudents(String RegNum) async {
+  bool isSuccess=false;
+  final response = await http.post(
+      Uri.parse('http://localhost:5000/unistudents/checkRegNum'),
+      headers: {
+        'Content-Type': 'application/json', // Set the content type to JSON
+      },
+      body:  convert.jsonEncode(<String, String>
+      {
+        "RegNum" : RegNum,
+  }),
+    );
+    if (response.statusCode == 200) {
+       isSuccess=true;
+      print('found!');
+    }else if(response.statusCode == 403){
+      isSuccess =false;
+      print('not found');
+    }else {
+      print('Login failed: ${response.body}');
+    }
+    return isSuccess;
+  }
+Future<Map<String, dynamic>> fetchUniStudentData(String RegNum) async {
+  final response = await http.get(Uri.parse("http://localhost:5000/unistudents/students/$RegNum"),);
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> studentData = convert.jsonDecode(response.body);
+    return studentData;
+  } else {
+    // Handle errors here
+    throw Exception("Failed to load student data");
+  }
+}
 Future<List<Map<String, dynamic>>> fetchStudents() async {
   print("Inside get students ");
     final response = await http.get(Uri.parse('http://localhost:5000/student/all/students'));
@@ -102,7 +136,8 @@ Future get(String url) async {
     log.i(response.body);
     log.i(response.statusCode);
   }
-Future<bool> registerUser(String RegNum, String fname, String lname, String BD , String city, String gender, String SEmail,String SPhone, String Password,String Major,String GPa,List<String> Interestss ) async {
+Future<bool> registerUser(String RegNum, String fname, String lname, String BD , String city, String gender, String SEmail,String SPhone, String Password,String Major,String GPa,List<String> Interestss,
+    String stustatus,String startyear,String graduationyear,bool universityTraining) async {
   bool isExist=false;
   final response = await http.post(
       Uri.parse('http://localhost:5000/student/register'),
@@ -123,6 +158,10 @@ Future<bool> registerUser(String RegNum, String fname, String lname, String BD ,
         "Major":Major,
         "GPa":GPa,
         "Interests":Interestss,
+        "stustatus":stustatus,
+        "startyear":startyear,
+        "graduationyear":graduationyear,
+        "universityTraining" :universityTraining
   }),
     );
     if (response.statusCode == 200) {
@@ -543,4 +582,5 @@ void updatefinishedcourses(String RegNum, List<dynamic> finishedGroups) async {
     print('Error: $error');
   }
 }
+
 }

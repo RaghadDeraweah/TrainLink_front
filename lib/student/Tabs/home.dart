@@ -33,8 +33,10 @@ Future<List<Map<String, dynamic>>> fetchPosts(String companyId) async {
 
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool isCliked=false;
+int count=0;
+bool isCliked=false;
 String? IDS;
+int finishedhours=0;
 bool isDataReady=false;
 String? location = null;
 String? framework = null;
@@ -43,6 +45,7 @@ bool stateUniv = false;
 bool alwaysfalse = true;
 List<Map<String, dynamic>> postss = [];
 List<Map<String, dynamic>> avaliblepostss = [];
+List<Map<String, dynamic>> filteredData =[];
 DateTime? dateTime ;
 Map<String, dynamic>  studentinfo={};
 final storage = FlutterSecureStorage();
@@ -50,13 +53,27 @@ final networkHandlers = NetworkHandlerS();
 final networkHandlerC = NetworkHandlerC();
 List<Map<String, dynamic>> reversedItems=[];
 List<dynamic> ss=[];
-
+   Future<void> update() async {
+    List<Map<String,dynamic>> te=[];
+    for(int i=0; i<filteredData.length;i++){
+      if(filteredData[i]['location']==location){
+        te.add(filteredData[i]);
+      }
+    setState(() {
+       avaliblepostss=te;
+      print(avaliblepostss);
+    });
+  }
+   }
   @override
   void initState() {
       super.initState();
       fetchData().then((_) {
         setState(() {
-        postss = List.from(reversedItems.reversed);
+        filteredData = List.from(postss.reversed);
+        avaliblepostss=filteredData;
+        count=avaliblepostss.length;
+        print(postss);
           isDataReady = true; // Set the flag to true when data is fetched
         });
         });
@@ -72,12 +89,13 @@ List<dynamic> ss=[];
     studentinfo.values.forEach((value) {
       print(value);
     });
-  
+    Map<String,dynamic> tem= await networkHandlers.fetchUniStudentData(IDS!);
+    finishedhours= int.parse(tem['finishedhours'] );
     reversedItems = await await networkHandlers.fetchPosts();
     for (var map in reversedItems) {
       map.forEach((key, value) {
         if(key=="isFreezed" && value==false){
-          avaliblepostss.add(map);
+          postss.add(map);
           print(map);
         }
         print('$key: $value');
@@ -157,11 +175,31 @@ List<dynamic> ss=[];
                             fontSize: 13),
                         alignment: Alignment.center,
                         onChanged: (String? newValue) {
-                          setState(() {
+                          if(newValue !="Nothing"){
+                          List<Map<String,dynamic>> te=[];
+                          for(int i=0; i<filteredData.length;i++){
+                            //print("location");
+                              if(filteredData[i]['location']==newValue){
+                                print("inside ifff");
+                                te.add(filteredData[i]);
+                              }                              
+                            }
+                          print("avaliblepostss from location");
+                          print(filteredData.length);
+                          print(te);
+                              setState(() {
+                                avaliblepostss=te;  
+                              });
+                        } else{
+                          avaliblepostss=filteredData; 
+                        }                                
+                            setState(() {                            
                             if (newValue == "Nothing") {
                               location = null;
                             } else {
                               location = newValue!;
+                              print(location);
+
                             }
                           });
                         },
@@ -249,7 +287,7 @@ List<dynamic> ss=[];
                           )
                         ],
                         value: location,
-                        icon: (location != null)
+                        icon: location !=null 
                             ? Icon(
                                 Icons.location_on,
                                 color: Colors.amber,
@@ -275,13 +313,32 @@ List<dynamic> ss=[];
                             color: Colors.black,
                             fontSize: 13),
                         alignment: Alignment.center,
-                        onChanged: (String? newValue) {
+                        onChanged: (String? newValue) { 
+                        if(newValue != "Nothing"){
+                          List<Map<String,dynamic>> te=[];
+                          for(int i=0; i<filteredData.length;i++){
+                            //print("location");
+                              if(filteredData[i]['field']==newValue){
+                                print("inside ifff");
+                                te.add(filteredData[i]);
+                              }                              
+                            }
+                          print("avaliblepostss from location");
+                          print(filteredData.length);
+                          print(te);
                           setState(() {
-                            
+                                avaliblepostss=te;  
+                              });  
+                        }else{
+                          avaliblepostss=filteredData; 
+                        }  
+
+                          setState(() {                                                       
                             if (newValue == "Nothing") {
                               framework = null;
-                            } else {
+                            } else {                            
                               framework = newValue!;
+                              print(framework);
                             }
                           });
                         },
@@ -413,7 +470,7 @@ List<dynamic> ss=[];
                           ),
                         ],
                         value: framework,
-                        icon: (framework != null)
+                        icon: framework != null
                             ? Icon(
                                 Icons.computer,
                                 color: Colors.amber,
@@ -434,11 +491,29 @@ List<dynamic> ss=[];
                         Tooltip(
                           message: "Is it online?",
                           child: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                stateOnline = !stateOnline;
-                              });
-                            },
+                          onPressed: () {
+                          if(!stateOnline){
+                          List<Map<String,dynamic>> te=[];
+                          for(int i=0; i<filteredData.length;i++){
+                              if(filteredData[i]['isRemotly']){
+                                print("inside ifff");
+                                te.add(filteredData[i]);
+                              }                              
+                            }
+                          print("avaliblepostss from location");
+                          print(filteredData.length);
+                          print(te);
+                          setState(() {
+                                avaliblepostss=te;  
+                          });
+                          }else{
+                            avaliblepostss=filteredData;
+                          }                               
+                        setState(() {                                
+                          stateOnline = !stateOnline;
+                          print("stateOnline = $stateOnline");
+                        });
+                      },
                             icon: (stateOnline)
                                 ? Icon(
                                     Icons.videocam,
@@ -457,8 +532,27 @@ List<dynamic> ss=[];
                           message: "Is it for University?",
                           child: IconButton(
                             onPressed: () {
-                              setState(() {
+                          if(!stateUniv){
+                          List<Map<String,dynamic>> te=[];
+                          for(int i=0; i<filteredData.length;i++){
+                              if(filteredData[i]['isUni']){
+                                print("inside ifff");
+                                te.add(filteredData[i]);
+                              }                              
+                            }
+                          print("avaliblepostss from location");
+                          print(filteredData.length);
+                          print(te);
+                          setState(() {
+                                avaliblepostss=te;  
+                          });
+                          }else{
+                            avaliblepostss=filteredData;
+                          }                                
+                          setState(() {                                
                                 stateUniv = !stateUniv;
+                                print("stateUniv = $stateUniv");
+                               
                               });
                             },
                             icon: (stateUniv)
@@ -476,24 +570,6 @@ List<dynamic> ss=[];
                         ),
                       ],
                     )
-
-                    /* Row(
-                    children: [
-                      Text("Online"),
-                      Checkbox(
-                        value: isChecked,
-                        activeColor: Colors.green,
-
-                        //tristate: true,
-                        onChanged: (newBool) {
-                          setState(() {
-                            isChecked = newBool;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-               */
                     )
                  ),
               ],
@@ -511,11 +587,366 @@ List<dynamic> ss=[];
                       child: Text('No posts available.'),
                     ),
                   )
-              :SliverList(
-                delegate: SliverChildBuilderDelegate(
+              :
+              SliverList(
+                delegate:
+                 SliverChildBuilderDelegate(
                   (context, index) {
+                                          return Card(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: 400.0,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Container(height: 20,),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,//400.0,
+                                  height: 50.0,
+                                  // color: Colors.amber,
+                                  child: Row(
+                                    children: <Widget>[
+                                    // Column(
+                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                        //children: <Widget>[
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                                            child: Container(
+                                              width: 50.0,
+                                              height: 50.0,
+                                              child: Container(
+                                                width: 50.0,
+                                                height: 50.0,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(40.0),
+                                                      border: Border.all(
+                                                          //    color: Color(0xff003566),
+                                                          style: BorderStyle.solid,
+                                                          color: Colors.grey.shade400),
+                                                    image: DecorationImage(
+                                                        image: NetworkImage("http://localhost:5000/"+avaliblepostss[index]['cimg']),
+                                                          fit: BoxFit.cover)),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        //],
+                                      //),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Row(
+                                            children: <Widget>[
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10),
+                                                width: 260.0,
+                                                height: 20.0,
+                                                // color: Colors.pink,
+                                                child: Text(
+                                                  avaliblepostss[index]['cname'],
+                                                  style: TextStyle(
+                                                    fontSize: 17.0,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                          Row(
+                                            children: <Widget>[
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10, top: 5),
+                                                width: 200.0,
+                                                height: 30.0,
+                                                // color: Colors.purple,
+                                                child: Text(
+                                                
+                                                  avaliblepostss[index]['postDate']+"    "+avaliblepostss[index]['location'],
+                                                  style: TextStyle(
+                                                      fontSize: 12.0,
+                                                      color: Colors.blueGrey[500]),
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Row(children: [
+                                          Container(
+                                            width: 30.0,
+                                            height: 30.0,
+                                            // color: Colors.brown,
+                                            child : avaliblepostss[index]['isRemotly']
+                                            ?  IconButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  print(avaliblepostss[index]['_id']);
+                               
+                                                });
+                                              },
+                                              icon: Icon(Icons.videocam_outlined,color: const Color.fromARGB(255, 89, 54, 244),),
+                                            )
+                                            :  IconButton(                         
+                                              onPressed: () {
+                                                setState(() {
+                                                  print(avaliblepostss[index]['_id']);                              
+                                                });
+                                              },
+                                              icon: Icon(Icons.videocam_off_outlined,color: Color.fromARGB(255, 158, 158, 158),),
+                                            )
+                                          ),
+                                          Container(
+                                            width: 30.0,
+                                            height: 30.0,
+                                            // color: Colors.brown,
+                                            child : avaliblepostss[index]['isUni']
+                                            ?  IconButton(
+                                              onPressed: () {},
+                                              icon: Icon(Icons.school,color: Color.fromARGB(255, 1, 2, 82)
+                                              ))
+                                            :  IconButton(                         
+                                              onPressed: () {
+                                              },
+                                              icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
+                                            )
+                                          ),
+                                        ],)
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  // height: 480.0,
+                                  //  color: Colors.amber,
+                                  child: Column(
+                                    children: [
+                                      SingleChildScrollView(
+                                          scrollDirection: Axis.vertical,
+                                          child: Center(
+                                            child: Container(
+                                              //   height: 80.0,
+                                              width: MediaQuery.of(context).size.width,
+                                              padding: EdgeInsets.all(20),
+                                              //  color: Colors.blue,
+                                              child: ReadMoreText(
+                                                avaliblepostss[index]['postContent'],
+                                                trimLines: 3,
+                                                style: TextStyle(fontSize: 15),
+                                                trimCollapsedText: '... Read More',
+                                                trimExpandedText: '... Read Less',
+                                                trimMode: TrimMode.Line,
+                                                textAlign: TextAlign.justify,
+                                                lessStyle: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                                moreStyle: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black),
+                                              ),
+                                            ),
+                                          )
+
+                                          // color: Colors.blue,
+
+                                          ),
+                                      Container(
+                                        width: 411.0,
+                                        height: 380.0,
+                                        decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          image: NetworkImage("http://localhost:5000/"+ avaliblepostss[index]['postImg']),
+                                          fit: BoxFit.cover,
+                                        )),
+
+                                        //  color: Color.fromARGB(255, 243, 117, 45),
+                                      )
+                                  
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 30.0,
+                                  // color: Colors.green,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                              width: 80,
+                                              height: 30,
+                                              //color: Colors.blue,
+                                              child: Row(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                children: [
+                                                  Icon(
+                                                    Icons.check,
+                                                    color: Color(0xff003566),
+                                                    size: 17,
+                                                  ),
+                                                  Text(
+                                                    avaliblepostss[index]['appliedStuId'].length.toString(),
+                                                    style: TextStyle(color: Color(0xff003566)),
+                                                  )
+                                                ],
+                                              ))
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(child: Divider()),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 30.0,
+                                  //  color: Colors.pink,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Container(
+                                        /* width: 137,
+                                        height: 30.0,*/
+                                        // color: Colors.yellow,
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {
+                                                if(studentinfo['available']==false){
+                                                  _showDialog(context,'You already In Training , ypu cant applay for any training until you finish current training.');
+                                                }
+                                                else if(studentinfo['request']==true && studentinfo['available']==true){
+                                                  _showDialog(context,'You applay a training please wait for company reply .');
+                                                }                              
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
+                                                  _showDialog(context,'You already Finshed Your University Training .');
+                                                }     
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                             
+                                                else if(studentinfo['available'] || studentinfo['request']==false ){
+                                                setState(() {
+                                                isCliked=true;
+                                                ss=avaliblepostss[index]['appliedStuId'];//.add(studentinfo['RegNum']);
+                                                ss.add(studentinfo['RegNum']);
+                                                });
+                                                networkHandlerC.updateapllidStuId( avaliblepostss[index]['_id'], ss);
+                                                networkHandlers.updatepostidstud(studentinfo['RegNum'],avaliblepostss[index]['_id'],true);
+                                                }
+
+                                              },
+                                              iconSize: 25,
+                                              icon: Icon(Icons.check),
+                                              color: studentinfo['request']
+                                              ? studentinfo['postid']== avaliblepostss[index]['_id']
+                                              ?  Color(0xffffc300)
+                                              : Color.fromARGB(255, 105, 103, 98)
+                                              : Color.fromARGB(255, 4, 57, 97),
+                                              //color: isCliked?  Color(0xffffc300):Color.fromARGB(255, 4, 57, 97),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 6),
+                                              child: Text(
+                                                "Request",
+                                                style: TextStyle(
+                                              color: studentinfo['request']
+                                              ? studentinfo['postid']== avaliblepostss[index]['_id']
+                                              ?  Color(0xffffc300)
+                                              : Color.fromARGB(255, 105, 103, 98)
+                                              : Color.fromARGB(255, 4, 57, 97),                                                  
+                                                    //color: isCliked?  Color(0xffffc300) :Color.fromARGB(255, 4, 57, 97),
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        /*  width: 137,
+                                        height: 30.0,*/
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {},
+                                              iconSize: 20,
+                                              icon: avaliblepostss[index]['isUni']
+                                              ? Icon(Icons.date_range_sharp)
+                                              : Icon(Icons.timelapse),
+                                              color: Color(0xff003566),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 6),
+                                              child: Text(
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
+                                                style: TextStyle(
+                                                    color:  Color.fromARGB(255, 21, 28, 82),
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        /*   width: 137,
+                                        height: 30.0,*/
+                                        //color: Colors.yellow,
+                                        child: Row(
+                                          
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {},
+                                              iconSize: 20,
+                                              icon: Icon(Icons.lock_clock_outlined),
+                                              color: Colors.red,
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 6),
+                                              child: Text(
+                          
+                                                avaliblepostss[index]['lockDate'],
+                                                style: TextStyle(
+                                                    color: Colors.red,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+                                  
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                    /*
                     //not filter
                     if(location == null && framework==null && stateOnline==false && stateUniv==false){
+                      
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -609,7 +1040,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -617,7 +1048,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -631,7 +1062,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -641,7 +1072,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -660,7 +1091,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -675,7 +1106,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -832,7 +1263,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }     
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                             
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -880,7 +1314,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -888,9 +1322,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -945,7 +1379,9 @@ List<dynamic> ss=[];
                     }
                     //location
                     else if(location != null && framework==null && stateOnline==false && stateUniv==false){
-                      if(postss[index]['location']==location){
+                      print("inside location***********************");
+                      print(avaliblepostss[index]['location']);
+                      if(avaliblepostss[index]['location']==location){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -1040,7 +1476,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1050,7 +1486,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1069,7 +1505,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -1214,6 +1650,9 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
+                                                } 
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
                                                 }                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
@@ -1262,7 +1701,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -1270,9 +1709,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -1326,8 +1765,9 @@ List<dynamic> ss=[];
                       }
                     }
                     //framework
-                    else if(location == null && framework !=null && stateOnline==false && stateUniv==false){
-                      if(postss[index]['field']==framework){
+                    else if(location == null && framework !=null && !stateOnline && !stateUniv){
+                       print("inside framework = $framework");
+                      if(avaliblepostss[index]['field']==framework){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -1421,7 +1861,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -1429,7 +1869,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -1443,7 +1883,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1453,7 +1893,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1472,7 +1912,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -1487,7 +1927,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1644,7 +2084,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                } 
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -1692,7 +2135,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -1700,9 +2143,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -1756,8 +2199,11 @@ List<dynamic> ss=[];
                       }
                     }
                     //online
-                    else if(location == null && framework==null && stateOnline ==true && stateUniv==false){
-                      if(postss[index]['isRemotly']==stateOnline){
+                    else if(location == null && framework==null && stateOnline && !stateUniv){
+                      print("inside stateOnline = $stateOnline");
+                      print("inside avaliblepostss[index]['isRemotly'] = ${avaliblepostss[index]['isRemotly']}");
+                      print(avaliblepostss[index]);
+                      if(!avaliblepostss[index]['isRemotly']){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -1851,7 +2297,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -1859,7 +2305,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -1873,7 +2319,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1883,7 +2329,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -1902,7 +2348,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -1917,7 +2363,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2074,6 +2520,9 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
+                                                }
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
                                                 }                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
@@ -2122,7 +2571,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -2130,9 +2579,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -2186,8 +2635,9 @@ List<dynamic> ss=[];
                       }
                     }
                     //university
-                    else if(location != null && framework==null && stateOnline==false && stateUniv==true){
-                      if(postss[index]['isUni']==stateUniv){
+                    else if(location == null && framework==null && !stateOnline && stateUniv){
+                      print("inside stateUniv = $stateUniv");
+                      if(avaliblepostss[index]['isUni']==stateUniv){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -2281,7 +2731,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -2289,7 +2739,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -2303,7 +2753,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2313,7 +2763,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2332,7 +2782,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -2347,7 +2797,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2504,6 +2954,9 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
+                                                }
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
                                                 }                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
@@ -2552,7 +3005,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -2560,9 +3013,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -2617,7 +3070,8 @@ List<dynamic> ss=[];
                     }
                     // location+framework
                     else if(location != null && framework !=null && stateOnline==false && stateUniv==false){
-                      if(postss[index]['field']==framework && postss[index]['location']==location ){
+                      print("location+framework");
+                      if(avaliblepostss[index]['field']==framework && avaliblepostss[index]['location']==location ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -2711,7 +3165,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -2719,7 +3173,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -2733,7 +3187,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2743,7 +3197,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2762,7 +3216,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -2777,7 +3231,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -2934,7 +3388,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                } 
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -2982,7 +3439,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -2990,9 +3447,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -3047,7 +3504,8 @@ List<dynamic> ss=[];
                     }    
                     //location + onlone          
                     else if(location != null && framework==null && stateOnline==true && stateUniv==false){
-                      if(postss[index]['isRemotly']==stateOnline && postss[index]['location']==location ){
+                      print("location + onlone  ");
+                      if(avaliblepostss[index]['isRemotly']==true && avaliblepostss[index]['location']==location ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -3141,7 +3599,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -3149,7 +3607,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -3163,7 +3621,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -3173,7 +3631,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -3192,7 +3650,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -3207,7 +3665,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -3364,7 +3822,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }  
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                               
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -3412,7 +3873,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -3420,9 +3881,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -3477,7 +3938,8 @@ List<dynamic> ss=[];
                     }
                     //location+university
                     else if(location != null && framework==null && stateOnline==false && stateUniv==true){
-                      if(postss[index]['isUni']==stateUniv && postss[index]['location']==location ){
+                      print("location+university");
+                      if(avaliblepostss[index]['isUni']==stateUniv && avaliblepostss[index]['location']==location ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -3571,7 +4033,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -3579,7 +4041,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -3593,7 +4055,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -3603,7 +4065,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -3622,7 +4084,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -3637,7 +4099,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -3794,7 +4256,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                } 
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -3842,7 +4307,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -3850,9 +4315,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -3907,7 +4372,8 @@ List<dynamic> ss=[];
                     }
                     // framework+ online 
                     else if(location == null && framework !=null && stateOnline==true && stateUniv==false){
-                      if(postss[index]['field']==framework && postss[index]['isRemotly']==stateOnline){
+                      print("framework+ online ");
+                      if(avaliblepostss[index]['field']==framework && avaliblepostss[index]['isRemotly']==stateOnline){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -4001,7 +4467,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -4009,7 +4475,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -4023,7 +4489,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4033,7 +4499,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4052,7 +4518,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -4067,7 +4533,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4272,7 +4738,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -4280,9 +4746,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -4337,7 +4803,8 @@ List<dynamic> ss=[];
                     }
                     // framework+ university 
                     else if(location == null && framework !=null && stateOnline==false && stateUniv==true){
-                      if(postss[index]['field']==framework && postss[index]['isUni']==stateUniv){
+                      print("framework+ university");
+                      if(avaliblepostss[index]['field']==framework && avaliblepostss[index]['isUni']==stateUniv){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -4431,7 +4898,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -4439,7 +4906,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -4453,7 +4920,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4463,7 +4930,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4482,7 +4949,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -4497,7 +4964,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4702,7 +5169,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -4710,9 +5177,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -4767,7 +5234,8 @@ List<dynamic> ss=[];
                     }
                     // online + university 
                     else if(location == null && framework ==null && stateOnline==true && stateUniv==true){
-                      if(postss[index]['isRemotly']==stateOnline && postss[index]['isUni']==stateUniv){
+                      print("online + university");
+                      if(avaliblepostss[index]['isRemotly']==stateOnline && avaliblepostss[index]['isUni']==stateUniv){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -4861,7 +5329,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -4869,7 +5337,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -4883,7 +5351,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4893,7 +5361,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -4912,7 +5380,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -4927,7 +5395,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5084,7 +5552,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                                 
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -5132,7 +5603,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -5140,9 +5611,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -5197,7 +5668,7 @@ List<dynamic> ss=[];
                     }
                     // location + framework +online
                     else if(location != null && framework!=null && stateOnline==true && stateUniv==false){
-                      if(postss[index]['field']==framework && postss[index]['location']==location && postss[index]['isRemotly']==stateOnline ){
+                      if(avaliblepostss[index]['field']==framework && avaliblepostss[index]['location']==location && avaliblepostss[index]['isRemotly']==stateOnline ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -5291,7 +5762,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -5299,7 +5770,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -5313,7 +5784,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5323,7 +5794,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5342,7 +5813,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -5357,7 +5828,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5514,7 +5985,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }    
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                             
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -5562,7 +6036,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -5570,9 +6044,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -5627,7 +6101,8 @@ List<dynamic> ss=[];
                     }
                     // loction + framework +university
                     else if(location != null && framework !=null && stateOnline==false && stateUniv==true){
-                      if(postss[index]['field']==framework && postss[index]['location']==location && postss[index]['isUni']==stateUniv ){
+                      print("inside uni $stateUniv");
+                      if(avaliblepostss[index]['field']==framework && avaliblepostss[index]['location']==location && avaliblepostss[index]['isUni']==stateUniv ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -5721,7 +6196,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -5729,7 +6204,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -5743,7 +6218,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5753,7 +6228,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5772,7 +6247,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -5787,7 +6262,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -5944,7 +6419,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                } 
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -5992,7 +6470,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -6000,9 +6478,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -6057,7 +6535,8 @@ List<dynamic> ss=[];
                     }
                     // loction + online +university
                     else if(location != null && framework==null && stateOnline==true && stateUniv==true){
-                      if(postss[index]['isRemotly']==stateOnline && postss[index]['location']==location && postss[index]['isUni']==stateUniv ){
+                      print("inside online $stateUniv");
+                      if(avaliblepostss[index]['isRemotly']==stateOnline && avaliblepostss[index]['location']==location && avaliblepostss[index]['isUni']==stateUniv ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -6151,7 +6630,7 @@ List<dynamic> ss=[];
                                             ?  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Color.fromARGB(255, 240, 105, 105)),
@@ -6159,7 +6638,7 @@ List<dynamic> ss=[];
                                             :IconButton(
                                               onPressed: () {
                                               Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => showStu(postss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], postss[index]['appliedStuId'])));
+                                            builder: (context) => showStu(avaliblepostss[index]['_id'],studentinfo['ID'],studentinfo['Name'],studentinfo['img'], avaliblepostss[index]['appliedStuId'])));
                                               },
                                               icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                                               ))
@@ -6173,7 +6652,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6183,7 +6662,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6202,7 +6681,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -6217,7 +6696,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6374,7 +6853,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }  
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                              
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -6422,7 +6904,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -6430,9 +6912,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -6487,7 +6969,7 @@ List<dynamic> ss=[];
                     }
                     // framework + online +university
                     else if(location == null && framework!=null && stateOnline==true && stateUniv==true){
-                      if(postss[index]['isRemotly']==stateOnline && postss[index]['field']==framework && postss[index]['isUni']==stateUniv ){
+                      if(avaliblepostss[index]['isRemotly']==stateOnline && avaliblepostss[index]['field']==framework && avaliblepostss[index]['isUni']==stateUniv ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -6582,7 +7064,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6592,7 +7074,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6730,7 +7212,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                } 
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                                
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -6778,7 +7263,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -6786,9 +7271,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -6843,7 +7328,7 @@ List<dynamic> ss=[];
                     }
                     // loction + framework + online +university
                     else if(location != null && framework!=null && stateOnline==true && stateUniv==true){
-                      if(postss[index]['location']==location && postss[index]['isRemotly']==stateOnline && postss[index]['field']==framework && postss[index]['isUni']==stateUniv ){
+                      if(avaliblepostss[index]['location']==location && avaliblepostss[index]['isRemotly']==stateOnline && avaliblepostss[index]['field']==framework && avaliblepostss[index]['isUni']==stateUniv ){
                       return Card(
                       child: Row(
                         children: <Widget>[
@@ -6938,7 +7423,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], false);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6948,7 +7433,7 @@ List<dynamic> ss=[];
                                               onPressed: () {
                                                 setState(() {
                                                   print(avaliblepostss[index]['_id']);
-                                                // networkHandlerC.updateIsFreezed(postss[index]['_id'], true);
+                                                // networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], true);
                                                   //super.initState();                                
                                                 });
                                               },
@@ -6967,7 +7452,7 @@ List<dynamic> ss=[];
                                             :  IconButton(                         
                                               onPressed: () {
                                               /* setState(() {
-                                                networkHandlerC.updateIsFreezed(postss[index]['_id'], false);                                
+                                                networkHandlerC.updateIsFreezed(avaliblepostss[index]['_id'], false);                                
                                                 });*/
                                               },
                                               icon: Icon(Icons.school,color: Color.fromARGB(255, 158, 158, 158)),
@@ -7086,7 +7571,10 @@ List<dynamic> ss=[];
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
-                                                }                                                
+                                                }  
+                                                else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
+                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                }                                                                                               
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
                                                 isCliked=true;
@@ -7132,7 +7620,7 @@ List<dynamic> ss=[];
                                             IconButton(
                                               onPressed: () {},
                                               iconSize: 20,
-                                              icon: postss[index]['isUni']
+                                              icon: avaliblepostss[index]['isUni']
                                               ? Icon(Icons.date_range_sharp)
                                               : Icon(Icons.timelapse),
                                               color: Color(0xff003566),
@@ -7140,9 +7628,9 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                postss[index]['isUni']
-                                                ? postss[index]['semester']
-                                                :  postss[index]['hours'].toString(),
+                                                avaliblepostss[index]['isUni']
+                                                ? avaliblepostss[index]['semester']
+                                                :  avaliblepostss[index]['hours'].toString(),
                                                 style: TextStyle(
                                                     color:  Color.fromARGB(255, 21, 28, 82),
                                                     fontWeight: FontWeight.bold),
@@ -7193,12 +7681,13 @@ List<dynamic> ss=[];
                       }
                     }
 
-                                    
+                   */                 
 
                   
                   },
                   childCount: avaliblepostss.length,
                 ),
+                
               ),
             ]
       )

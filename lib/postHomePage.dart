@@ -65,7 +65,7 @@ class MyHomePage1 extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState(this.cn,this.id,this.img);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage1> {
   late String cn ;
   late  String img="";
   late String id;

@@ -230,7 +230,7 @@ Future<void> fetchData() async {
 
                           Padding(
                             padding:
-                                const EdgeInsets.only(left: 10.0, top: 2.0),
+                                const EdgeInsets.only(left: 0, top: 2.0),
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                   side: BorderSide(

@@ -67,6 +67,7 @@ Future<void> fetchData() async {
       ? Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
+          leading: Icon(Icons.ac_unit_sharp,color: Color.fromARGB(255, 53, 31, 31),),
           title: Text(
             "TrainLink",
             style: TextStyle(
@@ -76,15 +77,6 @@ Future<void> fetchData() async {
                 color: Color(0xff003566)),
           ),
           actions: <Widget>[
-           /* IconButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => ChatListScreen(userId: IDCompany,)));
-              },
-              icon: Icon(Icons.search),
-              color: Colors.black,
-            ),*/
-
             IconButton(
               onPressed: () {
                 Navigator.of(context)

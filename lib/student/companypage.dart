@@ -171,7 +171,7 @@ Future<void> fetchData() async {
                 expandedHeight: 
                 canRate
                 ?345
-                :290.0, // Set the height you want for the flexible space
+                :300.0, // Set the height you want for the flexible space
                 flexibleSpace: FlexibleSpaceBar(
                  background://Column(children: [     
                   Padding(

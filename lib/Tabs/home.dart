@@ -170,15 +170,16 @@ Future<void> fetchData() async {
         shrinkWrap: true,
             slivers: [
               SliverAppBar(
+                leading: Icon(Icons.ac_unit_sharp,color: Color.fromARGB(255, 83, 27, 27),),
                 backgroundColor: Colors.white,
                 expandedHeight: 370.0, // Set the height you want for the flexible space
                 flexibleSpace: FlexibleSpaceBar(
                  background://Column(children: [     
                   Padding(
-                    padding:EdgeInsets.only(top: 10.0),
+                    padding:EdgeInsets.only(top: 5.0),
                     child :Container(          
                       width: MediaQuery.of(context).size.width,
-                      height: 355,
+                      height: 370,
                       //margin: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                       color: Colors.white,
@@ -366,7 +367,7 @@ Future<void> fetchData() async {
                                         icon: Icon(
                                           Icons.post_add,
                                           color: Color(0xff003566),
-                                          size: 40.0,
+                                          size: 33.0,
                                         ),
                                         )
                                   ],
@@ -404,7 +405,7 @@ Future<void> fetchData() async {
                           )
                         ],
                       ),
-                    Divider(height: 5,color: Color.fromARGB(255, 88, 88, 88),)
+                    //Divider(height: 5,color: Color.fromARGB(255, 88, 88, 88),)
                     ]),
                       ),
                   // Positioned(

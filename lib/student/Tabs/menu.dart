@@ -31,15 +31,17 @@ class _MenuState extends State<Menu> {
               Stack(
                 children: [
                   Container(
-                    alignment: Alignment.topLeft,
+                    alignment: Alignment.center,
                     padding: EdgeInsets.only(top: 5,left: 5),
-                    child: widget.fromstu
-                    ? Container( color: Color(0xff0F2C59),width: 10,)                  
-                    : IconButton(
+                    child: //widget.fromstu
+                    //? 
+                    Container( color: Color(0xff0F2C59),width: 1,)      ,            
+                  /*  : IconButton(
                     onPressed:() {
                        Navigator.of(context).pop();
                     }, 
                     icon: Icon(Icons.arrow_circle_left,color: Color.fromARGB(255, 255, 255, 255),size: 35,)) ,                   
+                   */
                     width: 411,
                     height: 200,
                     decoration: BoxDecoration(

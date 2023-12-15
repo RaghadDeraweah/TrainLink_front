@@ -38,7 +38,7 @@ late String Taskid;
               Navigator.of(context).pop();
             },
           ),
-
+          primary: false,
           backgroundColor: Colors.white,
          /* title: const Text(
             "Task Details",
