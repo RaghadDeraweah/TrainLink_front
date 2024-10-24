@@ -11,6 +11,29 @@ class NetworkHandlerC {
 String  baseurl="http://localhost:5000/company" ;
 var log = Logger();
 //String IDSend="";
+Future<bool> checkinunicom(String ID) async {
+  bool isSuccess=false;
+  final response = await http.post(
+      Uri.parse('http://localhost:5000/partnership/checkID'),
+      headers: {
+        'Content-Type': 'application/json', // Set the content type to JSON
+      },
+      body:  convert.jsonEncode(<String, String>
+      {
+        "ID" : ID,
+  }),
+    );
+    if (response.statusCode == 200) {
+       isSuccess=true;
+      print('found!');
+    }else if(response.statusCode == 403){
+      isSuccess =false;
+      print('not found');
+    }else {
+      print('Login failed: ${response.body}');
+    }
+    return isSuccess;
+  }
 FlutterSecureStorage storage = FlutterSecureStorage();
 Future<String> getidddd() async{
 String? token = await storage.read(key: "token");
@@ -489,6 +512,7 @@ Future<List<Map<String, dynamic>>> getGroups(String cid) async {
         'membersStudent': group['membersStudent'],
         'membersStudentId': group['membersStudentId'],
         'islocked': group['islocked'],
+        'isDel': group['isDel'],
         'phase': group['phase'],
         'StartDate': group['StartDate'],
         'EndDate': group['EndDate'],
@@ -588,7 +612,8 @@ Future<String> addgrouppost(String  groupid,
   }
 return idd;
 }
-Future<http.StreamedResponse> patchImagegrouppost( String filepath ,String _id) async {
+Future<bool> patchImagegrouppost( String filepath ,String _id) async {
+  bool done=false;
     var request = http.MultipartRequest('PATCH', Uri.parse('http://localhost:5000/group-post/add/image'));
     request.fields['_id']=_id;
     request.files.add(await http.MultipartFile.fromPath("img", filepath));
@@ -601,11 +626,12 @@ Future<http.StreamedResponse> patchImagegrouppost( String filepath ,String _id) 
     var response = await request.send();
     if (response.statusCode == 200) {
       print('Image uploaded successfully');
+      done=true;
     } else {
       print(response.statusCode);
       print('Image upload failed: ${response.reasonPhrase}');
   }
-  return response;
+  return done;
   }
 Future<List<Map<String, dynamic>>> getGroupsposts(String groupid) async {
   final response = await http.get(Uri.parse('http://localhost:5000/group-post/posts/$groupid'));
@@ -1000,6 +1026,26 @@ void updateEndDate(String groupid) async {
     print('Error: $error');
   }
 }
+void updateDel(String groupid ,bool isDel) async {
+  final String apiUrl = 'http://localhost:5000/group/Del/$groupid';
+
+  try {
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: convert.jsonEncode({'isDel': isDel}),
+    );
+
+    if (response.statusCode == 200) {
+      print('group isdel updated successfully');
+    } else {
+      print('Failed to update group. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  } catch (error) {
+    print('Error: $error');
+  }
+}
 void deleteGroup(String groupid) async {
   final String apiUrl = 'http://localhost:5000/group/delete/$groupid';
 
@@ -1300,10 +1346,38 @@ Future<String> addcompanyform(String  groupid,
         String StuName,
         String StuImg,
         String hours,
+        bool isUni,
         String q1,
         String q2,
         String q3,
         String q4,
+        String q5,
+        String q6,
+        String q7,
+        String q8,
+        String q9,
+        String q10,
+        String q11,
+        String q12,
+        String q13,
+        String q14,
+        String q15,
+        String q16,
+        String t1,
+        String t2,
+        String t3,
+        String t4,
+        String t5,
+        String t6,
+        String t7,
+        String t8,
+        String t9,
+        String t10,
+        String t11,
+        String s12,
+        String s13,
+        String s14,
+        String s15,          
         int mark,
         int submitedReports
 
@@ -1323,10 +1397,39 @@ Future<String> addcompanyform(String  groupid,
         "StuName": StuName,
         "StuImg": StuImg,
         "hours": hours,
+        "isUni":isUni,
         "q1":q1,
         "q2": q2,
         "q3": q3,
         "q4": q4,
+        "q5":q5,
+        "q6": q6,
+        "q7": q7,
+        "q8": q8,
+        "q9":q9,
+        "q10": q10,
+        "q11": q11,
+        "q12": q12,
+        "q13": q13,
+        "q14": q14,
+        "q15": q15,
+        "q16": q16,
+        "t1":t1,
+        "t2": t2,
+        "t3": t3,
+        "t4": t4,
+        "t5":t5,
+        "t6": t6,
+        "t7": t7,
+        "t8": t8,
+        "t9":t9,
+        "t10": t10,
+        "t11": t11,
+        "s12": s12,
+        "s13": s13,
+        "s14": s14,
+        "s15": s15,
+        
         "mark":mark,
         "submitedReports":submitedReports
 }),
@@ -1381,4 +1484,37 @@ Future<List<Map<String, dynamic>>> getForms(String groupid) async {
   void logout() async {
     await storage.delete(key: "token");
   }
+Future<Map<String, dynamic>> fetchPostData(String _id) async {
+  final response = await http.get(Uri.parse("http://localhost:5000/post/post/$_id"),);
+
+  if (response.statusCode == 200) {
+    // Parse the JSON response into a map
+    Map<String, dynamic> postData = convert.jsonDecode(response.body);
+    print("from back = $postData");
+    return postData;
+  } else {
+    // Handle errors here
+    throw Exception("Failed to load post data");
+  }
+}
+void deletecompany(String ID ) async {
+  final String apiUrl = 'http://localhost:5000/company/deletenow/$ID';
+
+  try {
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: convert.jsonEncode({}),
+    );
+
+    if (response.statusCode == 200) {
+      print('delete company successful');
+    } else {
+      print('Failed sending alert to company. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  } catch (error) {
+    print('Error: $error');
+  }
+}
 }

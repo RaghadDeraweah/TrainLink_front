@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:untitled4/BStudent.dart';
 import 'package:untitled4/BCompany.dart';
 import 'package:untitled4/HomePage.dart';
+import 'package:untitled4/changePWD/ForgotPassworD.dart';
+import 'package:untitled4/newSignUp.dart';
 import 'package:untitled4/student/HomeStu.dart';
 
 class Login extends StatefulWidget{
@@ -30,6 +32,38 @@ class Login extends StatefulWidget{
       offsecure = !offsecure;
     });
   }
+
+    void _showDialog(BuildContext context , String msg , bool go) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Return the AlertDialog widget
+        return AlertDialog(
+          icon: Icon(Icons.error,color: Colors.red,size: 40,),
+          //title: Text('Dialog Title'),
+          content: Text(msg,style: TextStyle(fontSize: 25),),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Close the dialog
+                //Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+               if(go){
+               Navigator.of(context).popUntil((route) => route.isFirst);
+               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+               }
+               else{
+                Navigator.of(context).pop();
+               }
+              },
+              child: go 
+              ?Text('GO')
+              :Text('OK')
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,31 +71,62 @@ class Login extends StatefulWidget{
       body:Stack(
         children: [
           Container(
-              child:Image.asset("images/loginimg.png",
+              child:Image.asset("images/newlog.jpg",
               fit: BoxFit.cover,
-              width: 500,
-              height: 1080,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
              ), 
              //child: Text("login"),
               ),
           Positioned(
-          bottom: 0, 
+          bottom: 70, 
           child: Container( 
+            margin :EdgeInsets.fromLTRB(5, 0, 5, 5),
+            //margin: EdgeInsets.all(5),
             decoration: BoxDecoration(
               shape: BoxShape.rectangle,
-              color:Color.fromARGB(255, 223, 217, 217),
-              borderRadius: BorderRadius.only(topRight: Radius.circular(30),topLeft: Radius.circular(30)),
+              color:Color.fromARGB(255, 253, 243, 243),
+              borderRadius: BorderRadius.only(topRight: Radius.circular(40),topLeft: Radius.circular(40),bottomLeft: Radius.circular(40),bottomRight:Radius.circular(40)),
               ),
-            padding: EdgeInsets.all(20),
-            width: 412,
+            padding: EdgeInsets.fromLTRB(20,40,20,20),
+            width:402,
             height: 500,           
             child :Form(
               
               key: loginform,
-              child: PageView(//Column(
-                children: [
+              child:// PageView(//Column(
+               // children: [
                 Column(children: [
-                Container(height: 20,), 
+                
+                Container(
+                  
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(
+                    "Let's sign you in ",
+                  style:TextStyle(
+                    color: const Color.fromARGB(193, 0, 0, 0),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25
+                    
+
+                  ),),
+                    Container(height: 10,),
+                  Text(
+                    "Welcome back , you've been missed",
+                  style:TextStyle(
+                    color: Color.fromARGB(141, 77, 76, 76),
+                    fontWeight: FontWeight.w400,
+                    fontSize: 15,
+
+                  ),
+                  ),
+                  ],)
+
+                ),
+                Container(height: 40,), 
                 TextFormField( 
                   controller: _Email,
                     enableSuggestions: true,
@@ -160,14 +225,39 @@ class Login extends StatefulWidget{
                   //}
                   },
                 ),
+                 Container(
+                  width: 200,
+                  height: 50,
+                  margin:EdgeInsets.fromLTRB(185, 0, 1, 20),
+                  child: MaterialButton (
+                      child: Text("Forgot password?",style: TextStyle(fontSize: 15,),),
+                      textColor: Color.fromARGB(255, 107, 107, 107),
+                      
+                    // color: Color.fromARGB(255 ,248, 154, 0),
+                        onPressed:(){
+                              Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => ForgotPassworD()));
+                        /*if(loginform.currentState!.validate()){
+                          loginform.currentState!.save();
+                          print("valid");
+                          print("$id");
+
+
+                        }else{
+                          print("invalid");
+                        }*/
+                      },
+
+                    ),
+                  ),
                 Container(
                   width: 433,
                   height: 50,
-                  margin:EdgeInsets.fromLTRB(38, 20, 1, 10),
+                  margin:EdgeInsets.fromLTRB(10, 20, 1, 0),
                   child: ButtonTheme(
                     shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
                     child :MaterialButton (
-                      child: Text("LOGIN",style: TextStyle(fontSize: 28,),),
+                      child: Text("Sign in",style: TextStyle(fontSize: 28,),),
                       textColor: Colors.white,
                       color: Color.fromARGB(255 ,248, 154, 0),
                         onPressed:() async{
@@ -177,10 +267,18 @@ class Login extends StatefulWidget{
                           print(_Email.text);
                           print(_Password.text);
                           if(_Email.text.length==5){
+
                             bool result =await networkHandlerC.LoginID(_Email.text, _Password.text);
                             if(result==true){ 
+                              Map<String, dynamic>  companyinfo={};
+                              companyinfo = await networkHandlerC.fetchCompanyData(_Email.text);
+                              if(!companyinfo['deleted']){
                               print("success Login.....");
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));}
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));
+                              }else{
+                                _showDialog(context, "Your Account Deleted", false);
+                              }
+                              }
 
                             else{print("Failed Login.....");}  
                           }
@@ -229,17 +327,19 @@ class Login extends StatefulWidget{
                   },*/),
                   ),
                 ),
-                Container(
-                  width: 433,
+                /*Container(
+                  width: 200,
                   height: 50,
-                  margin:EdgeInsets.fromLTRB(38, 20, 1, 20),
+                  margin:EdgeInsets.fromLTRB(185, 0, 1, 20),
                   child: MaterialButton (
-                      child: Text("Forgot password?",style: TextStyle(fontSize: 15,decoration:TextDecoration.underline),),
+                      child: Text("Forgot password?",style: TextStyle(fontSize: 15,),),
                       textColor: Color.fromARGB(255, 107, 107, 107),
                       
                     // color: Color.fromARGB(255 ,248, 154, 0),
                         onPressed:(){
-                        if(loginform.currentState!.validate()){
+                              Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => ForgotPassworD()));
+                        /*if(loginform.currentState!.validate()){
                           loginform.currentState!.save();
                           print("valid");
                           print("$id");
@@ -247,16 +347,54 @@ class Login extends StatefulWidget{
 
                         }else{
                           print("invalid");
-                        }
+                        }*/
                       },
+
                     ),
                   )
+                */
                 ],),
                 
-                ],
-                ),
+                //],
+                //),
               ),
            ),
+          ),
+          Positioned(
+            bottom: 20,
+            child: Container(
+                  width: 400,
+                  height: 20,
+                  margin:EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  child: MaterialButton (
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                        Text("Don't have an account ?",style: TextStyle(fontSize: 15,color: Colors.white),),
+                        Text("  Register now",style: TextStyle(fontSize: 15,color: Colors.amber),),
+                      ],),
+                      
+                      //textColor: Color.fromARGB(255, 107, 107, 107),
+                      
+                    // color: Color.fromARGB(255 ,248, 154, 0),
+                        onPressed:(){
+                              
+                    Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => signup()));
+                        /*if(loginform.currentState!.validate()){
+                          loginform.currentState!.save();
+                          print("valid");
+                          print("$id");
+
+
+                        }else{
+                          print("invalid");
+                        }*/
+                      },
+
+                    ),
+                  )
           ),
         ],
       )

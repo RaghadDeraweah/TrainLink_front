@@ -45,6 +45,35 @@ Future<Map<String, dynamic>> fetchUniStudentData(String RegNum) async {
     throw Exception("Failed to load student data");
   }
 }
+Future<List<Map<String, dynamic>>> fetchUniStudents() async {
+  print("Inside get students ");
+    final response = await http.get(Uri.parse('http://localhost:5000/unistudents/all/students'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = convert.jsonDecode(response.body);
+      final List<Map<String, dynamic>> companies = data.map((company) {
+      return {
+
+              'RegNum': company['RegNum'],
+              'city': company['city'],
+              'SEmail': company['SEmail'],
+              'Password': company['Password'],
+              'Major': company['Major'],
+              'GPa': company['GPa'],
+              'stustatus': company['stustatus'],
+              'startyear': company['startyear'],
+              'graduationyear': company['graduationyear'],
+              'finishedhours': company['finishedhours'],
+              'universityTraining': company['universityTraining'],
+      };
+    }).toList();
+
+    return companies;
+
+    } else {
+      throw Exception('Failed to load students');
+    }
+  }
 Future<List<Map<String, dynamic>>> fetchStudents() async {
   print("Inside get students ");
     final response = await http.get(Uri.parse('http://localhost:5000/student/all/students'));
@@ -75,6 +104,7 @@ Future<List<Map<String, dynamic>>> fetchStudents() async {
               'available': company['available'],
               'request': company['request'],
               'img': company['img'],
+              'universityTraining':company['universityTraining']
       };
     }).toList();
 
@@ -501,8 +531,10 @@ Future<List<Map<String, dynamic>>> fetchStuPosts(String RegNum) async {
 Future<String> addstupost(String  RegNum,
         String  sname,
         String simg,
+        String title,
         String content,
-        String projectlink, 
+        String projectlink,
+         List<String> frameworks
         )async {
   String idd="";
 
@@ -516,8 +548,10 @@ Future<String> addstupost(String  RegNum,
         "RegNum":RegNum,
         "sname": sname,
         "simg": simg,
+        "title":title,
         "content": content,
-        "projectlink": projectlink, 
+        "projectlink": projectlink,
+        "frameworks":frameworks 
 
 }),
   );
@@ -545,11 +579,15 @@ Future<List<Map<String, dynamic>>> getStuposts(String RegNum) async {
     // Convert the data to the desired format
     final List<Map<String, dynamic>> groupposts = responseData.map((grouppost) {
       return {
+        '_id':grouppost['_id'],
         'RegNum': grouppost['RegNum'],
         'sname': grouppost['sname'],
         'simg': grouppost['simg'],
+        'title': grouppost['title'],
         'content': grouppost['content'],
         'projectlink': grouppost['projectlink'],
+        'frameworks':grouppost['frameworks'],
+        'likes':grouppost['likes']
       };
     }).toList();
 
@@ -582,5 +620,24 @@ void updatefinishedcourses(String RegNum, List<dynamic> finishedGroups) async {
     print('Error: $error');
   }
 }
+void updatelikes(String _id, List<dynamic> likes) async {
+  final String apiUrl = 'http://localhost:5000/student-post/updatelikes/$_id';
 
+  try {
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: convert.jsonEncode({'likes': likes}),
+    );
+
+    if (response.statusCode == 200) {
+      print('likes updated successfully');
+    } else {
+      print('Failed to update company rating. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  } catch (error) {
+    print('Error: $error');
+  }
+}
 }

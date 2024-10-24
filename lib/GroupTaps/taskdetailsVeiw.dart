@@ -191,7 +191,7 @@ Future<void> fetchData() async {
                       padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                       alignment: AlignmentDirectional.center,
                      decoration: BoxDecoration(
-                      color: const ui.Color.fromARGB(255, 131, 90, 202),
+                      color: const ui.Color.fromARGB(255, 5, 29, 64),
                     borderRadius: BorderRadius.circular(30),
                       ),
                       
@@ -285,7 +285,7 @@ Widget taskVeiw(String type,String taskname,String lockdate,String subnum,String
           fontSize: 23,
           fontWeight: FontWeight.bold,
           color: ui.Color.fromARGB(237, 0, 0, 0),
-          backgroundColor: ui.Color.fromARGB(255, 246, 237, 209), //rgb(255,246,237)
+         // backgroundColor: ui.Color.fromARGB(255, 246, 237, 209), //rgb(255,246,237)
           ),
 
         ),
@@ -381,7 +381,7 @@ Widget taskVeiw(String type,String taskname,String lockdate,String subnum,String
           fontSize: 23,
           fontWeight: FontWeight.bold,
           color: ui.Color.fromARGB(237, 0, 0, 0),
-          backgroundColor: ui.Color.fromARGB(255, 246, 237, 209), //rgb(255,246,237)
+         // backgroundColor: ui.Color.fromARGB(255, 246, 237, 209), //rgb(255,246,237)
           ),
 
         ),),
@@ -394,7 +394,7 @@ Widget taskVeiw(String type,String taskname,String lockdate,String subnum,String
           fontSize: 15,
           fontWeight: FontWeight.w300,
           color: ui.Color.fromARGB(237, 0, 0, 0),
-          backgroundColor: ui.Color.fromARGB(255, 246, 237, 209), //rgb(255,246,237)
+         // backgroundColor: ui.Color.fromARGB(255, 246, 237, 209), //rgb(255,246,237)
           ),
 
         ),
@@ -430,20 +430,24 @@ Widget submissionslist (String img, String fname,  String taskLink){
                                         image: DecorationImage(
                                             image:NetworkImage("http://localhost:5000/"+img),
                                             fit: BoxFit.cover))),
-                                Container(
+                               Expanded(
+                                flex: 1,
+                                child: Container(
                                   width: 230,
                                   alignment: AlignmentDirectional.centerStart,
                                 child:Text(
                                   fname,
                                   style: TextStyle(color: const ui.Color.fromARGB(255, 0, 0, 0),fontSize: 15,fontWeight: FontWeight.bold),
-                                ),),
+                                ),),),
                                 /*mater
                                 Link(
                                   uri : Uri.parse()
                                 ),*/
-                            ElevatedButton(
+                           Expanded(
+                            flex: 1,
+                            child: ElevatedButton(
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(const ui.Color.fromARGB(255, 131, 90, 202)), // Replace with your desired color
+                                backgroundColor: MaterialStateProperty.all<Color>(ui.Color.fromARGB(255, 5, 29, 64)), // Replace with your desired color
                                // fixedSize: MaterialStateProperty.all<Size>(Size(100, 1)),
                                 shape: MaterialStateProperty.all<OutlinedBorder>(
                                         RoundedRectangleBorder(
@@ -460,9 +464,9 @@ Widget submissionslist (String img, String fname,  String taskLink){
                               throw 'Could not launch $url';
                             }
                           },
-                          child: Text('Open Link'),
+                          child: Text('Open Link',style: TextStyle(color: Colors.white),),
                         ),
-
+                              ),
 
                             /*  Row(children: [
                                 

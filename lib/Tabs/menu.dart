@@ -43,13 +43,13 @@ class _Forms22State extends State<Forms> {
       print(forms);
       Students(groupnametemp);
     });
- 
-
   }
   void Students(String newValue,)async{
+                                    //    stuinfo=[];
+                                    //studentslist=[]; 
                               for (var map in groups) {
                               if(map['groupname']==dropdownValue){
-                               print("Match");
+                               print("Match");                             
                                // fetchReportsWeek(map['_id'],newValue!);   
                                 for (String sid in map["membersStudentId"]) {
                                   if(forms.length==0){
@@ -159,50 +159,29 @@ class _Forms22State extends State<Forms> {
     postss = await networkHandlerC.fetchPosts(widget.CID!);
     //print(postss);
     groups = await networkHandlerC.getGroups(widget.CID!);
-    for (var map in groups) {
+    for (int m=0;m<groups.length;m++) {
       print("inside groups");
-      map.forEach(
-        (key, value) {
-        if(key=="islocked" && value==true){
+     // map.forEach(
+        //(key, value) {
+        if(groups[m]['islocked']==true && groups[m]['isDel']==false){
         print("islocked passed");
         for(int i=0;i<postss.length;i++){
           print("inside loop");
           print("post "+postss[i]['_id']);
-          print("group "+map['postid']);
-             if( postss[i]['_id']==map['postid']){
-             // if(postss[i]['isUni']==true){
-             // print("post is uni");
-             // print("post is Uni ="+postss[i]["isUni"]);
-              availablegroups.add(map);
-              availablegroupssNames.add(map["groupname"]);
+          print("group "+groups[m]['postid']);
+             if( postss[i]['_id']==groups[m]['postid']){
+             // MapEntry("isUni", postss[i]['isUni']);
+              groups[m].addEntries([MapEntry("isUni", postss[i]['isUni'])]);
+              availablegroups.add(groups[m]);
+              print(availablegroups);
+              availablegroupssNames.add(groups[m]['groupname']);
               print(availablegroupssNames);
               //}
           }
           }
-         /* for(var post in postss){
-               post.forEach(
-                (key, value) {
-                   print("post ");
-              if(key=='_id' && value==map['postid']){
-                 print("post "+value);
-              if(post['isUni']==true){
-                 print("post is uni");
-                    print("postid"+map["isUni"]);
-              availablegroups.add(map);
-              availablegroupssNames.add(map["groupname"].toLowerCase());
-              print(availablegroupssNames);
-              }}
-
-            });
-            
-          }*/
         }
-      });
+      //});
     }
-
-    /*for (String name in availablepostssNames){
-      print(name);
-    }*/
 
     isDataReady=true;
   } catch (error) {
@@ -241,7 +220,6 @@ void initState() {
                             fontWeight: FontWeight.bold, fontSize: 30),
                       ),
                     ),
-                    //  color: Colors.amber,
                   ),
                   Divider(
                     color: Color(0xffffc300),
@@ -292,14 +270,6 @@ void initState() {
                               
                             });
 
-                              //print(forms);
-
-                               
-                                
-                              
-                              
-                            
-                           // print(_allUsersID);
                           },
                           items: availablegroupssNames.map((String name){
                           return DropdownMenuItem(
@@ -310,9 +280,6 @@ void initState() {
                           );
 
                          }).toList(),
-                  
-                          
-                          //value: dropdownValue,
                           icon: Icon(Icons.arrow_drop_down_rounded),
                         ),
                       ),
@@ -322,15 +289,9 @@ void initState() {
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
                 color: const Color.fromARGB(255, 255, 255, 255),
-               // margin: EdgeInsets.symmetric(horizontal: 30),
-              //  padding: EdgeInsets.only(top:5,left: 5,right: 5,bottom: 5),
-               // color: Colors.amber,
-               // child: Expanded(
                   child: ListView.builder(
                       itemCount: stuinfo.length,
                       itemBuilder: (context, index) => ListTile(
-                           // value: widget.studentsid[index]['id_status'],
-                            //key: ValueKey("1"),
                             title: Container(
                               height: 60,
                               width: 400,
@@ -340,15 +301,12 @@ void initState() {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child : Row(
-                             // mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Container(
-
                                     margin: EdgeInsets.only(right: 20),
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
-                                     // color: Colors.amber,
                                         borderRadius: BorderRadius.circular(50),
                                         image: DecorationImage(
                                             image:NetworkImage("http://localhost:5000/"+stuinfo[index]['img']),
@@ -362,33 +320,20 @@ void initState() {
                              
 
                               Row(
-                                children: [
-                                
-                             /*   IconButton(onPressed:() async{
-                                  /*print(stuinfo[index]['cv']);
-                                  networkHandler.downloadFile("http://localhost:5000/"+stuinfo[index]['cv'], '${stuinfo[index]['RegNum']}.pdf');
-                                */}, icon: stuinfo[index]['isEvaluate']
-                               ? Icon(
-                                      Icons.done,
-                                      color: Color.fromARGB(255, 4, 158, 40),
-                                      size: 30.0,
-                                 )
-                               : Icon(
-                                      Icons.close,
-                                      color: Color.fromARGB(255, 105, 97, 97)
-                                      size: 30.0,
-                                 ),
-                            ),*/
-                                IconButton(onPressed:() {
+                                children: [                              
+                                IconButton(onPressed:() async{
+                                  setState(() {
+                                    isDataReady=false;
+                                  });
                                   if(stuinfo[index]['isEvaluate']==false){
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddCompanyform(currecntgroup,widget.CID,this.groupid,stuinfo[index]['RegNum'],stuinfo[index]['sname'],stuinfo[index]['img'],postid)));
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddCompanyform(groupinfo:currecntgroup,CID:widget.CID,groupid:this.groupid,StuId:stuinfo[index]['RegNum'],StuName:stuinfo[index]['sname'],StuImg:stuinfo[index]['img'],postid:postid,
+                                  onDataRefresh: ()async{
+                                setState(() {   
+                                  stuinfo[index]['isEvaluate']=true;
+                                  isDataReady=true;                                                                  
+                                });
+                                  },)));
                                   }
-                                  //AddCompanyform
-                                 /* setState(() {
-                                  widget.studentsid.remove(stuinfo[index]['RegNum']);
-                                  networkHandlerC.updateapllidStuId(widget.postid,widget.studentsid);
-                                  });*/
-
                                 }, icon: stuinfo[index]['isEvaluate']
                                ? Icon(
                                       Icons.done,
@@ -397,14 +342,12 @@ void initState() {
                                  )
                               : Icon(
                               Icons.post_add,
-                              color: Color.fromARGB(255, 46, 46, 173),
+                              color: Color(0xff003566),
                               size: 30.0,
                             ),
                             )
                               
                               ],)
-                           //   ],
-                           // ),
                             ],),
                           ),
                        ),

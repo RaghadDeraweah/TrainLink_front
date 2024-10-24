@@ -15,6 +15,7 @@ class Reports22 extends StatefulWidget {
 
 class _Reports22State extends State<Reports22> {
   bool submit=false ;
+  bool submitnow=false;
   Map<String,dynamic> currentreport={};
   Map<String,dynamic> groupinfo={};
   bool isDataReady=false;
@@ -351,8 +352,8 @@ void initState() {
                           icon: Icon(Icons.arrow_drop_down_rounded),
                         ),
                       ),
-*/                     
-                     submit
+*/                   dropdownValueWeeks != "Week"  
+                     ?submit 
                      ? Container(
                         child: Column(
                           children: [
@@ -400,8 +401,54 @@ void initState() {
                                             Colors.amber), // Change color here
                                   ),
                                   onPressed: () async{
+                                    isDataReady=false;
                                     String id= await networkHandlerC.addreport(widget.stuinfo['groupid'], widget.stuinfo['RegNum'], widget.stuinfo['fname']+" "+widget.stuinfo['lname'], widget.stuinfo['img'], dropdownValueWeeks, _controllerH.text, _controllerD.text, _controllerN.text, _controllerEX.text, _work.text);
-                                    if(id.length>5){print("report added");}
+                                    if(id.length>5){
+                                      print("report added");
+
+                                      }
+                            setState(() {
+                                _controllerD = TextEditingController(text: "0");
+                                _controllerH = TextEditingController(text: "0");
+                               _controllerN = TextEditingController(text: "0");
+                                 counterAddD = 0;
+                                 counterAddH = 0;
+                                 counterAddN = 0;
+                                 AddFlagD = false;
+                                 RemoveFlagD = false;
+                                 AddFlagH = false;
+                                 RemoveFlagH = false;
+                                 AddFlagN = false;
+                                 RemoveFlagN = false;
+                                 minD=0;
+                                 maxD=6;
+                                 maxlenD=1;
+                                 minH=0;
+                                 maxH=48;
+                                 maxlenH=2;
+                                 minN=0;
+                                 maxN=48;
+                                 maxlenN=2;
+                              dropdownValueWeeks = "Week";
+                              currentreport={};  
+                              submit=false;
+                            /*if(reports.length !=0){ 
+                            for(int i=0;i<reports.length;i++ ){
+                                  if( reports[i]['week']==newValue){
+                                   // setState(() {
+                                    currentreport=reports[i];
+                                    submit=true;                                      
+                                   // });
+                                    print(currentreport) ;  
+                                    print(submit) ;  
+                                  }
+                              } }  */                                                       
+                            });                                       
+                                    fetchData().then((_) {
+                                        setState(() {
+                                          isDataReady = true; // Set the flag to true when data is fetched
+                                        });
+                                        });
                                   },
                                   child: Text(
                                     'Submit',
@@ -413,9 +460,11 @@ void initState() {
                           ],
                         ),
                       )
+                    :Container(width: 10,)
                     ],
                   ),
-                  Container(
+                 dropdownValueWeeks != "Week"  
+                 ? Container(              
                     width: 390,
                     height: 1110,
                     color: Colors.white,
@@ -530,11 +579,15 @@ void initState() {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text(
+                             // Expanded(
+                               // flex: 1,
+                                //child: 
+                                Text(
                                 "Weekly working days :",
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 15),
                               ),
+                              //),
                               submit
                               ? Container(
                                 margin: EdgeInsets.only(left: 10),
@@ -548,8 +601,12 @@ void initState() {
                                         fontSize: 15),                                  
                                 ),
                               )
-                              : Container(
-                                margin: EdgeInsets.fromLTRB(70, 4, 4, 4),
+                              ://Expanded( 
+                                //flex: 1,
+                              //child: 
+                              Container(
+                                margin: EdgeInsets.fromLTRB(59, 4, 10, 4),
+                                //margin:EdgeInsets.only(top:4,bottom: 4 ,right: 0),
                                // margin: EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
@@ -627,7 +684,7 @@ void initState() {
                                   ],
                                 ),
                               ),
-
+                              //),
                               // TextFormField()
                             ],
                           ),
@@ -663,7 +720,7 @@ void initState() {
                                 ),
                               )
                               : Container(
-                                margin: EdgeInsets.fromLTRB(78, 4, 4, 4),
+                                margin: EdgeInsets.fromLTRB(70, 4, 4, 4),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(color: Colors.grey)),
@@ -799,7 +856,7 @@ void initState() {
                                 ),
                               )                              
                               : Container(
-                              margin: EdgeInsets.fromLTRB(60, 4, 4, 4),
+                              margin: EdgeInsets.fromLTRB(50, 4, 4, 4),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: Colors.grey)),
@@ -1012,6 +1069,21 @@ void initState() {
                         ),*/
                       ],
                     ),
+                  )
+                  :Container(
+                    margin: EdgeInsets.only(top: 170),
+                    child:Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text("Track your reports",style: TextStyle(color: Color.fromARGB(255, 244, 163, 0),fontSize: 25,fontWeight: FontWeight.w600),),
+                        Container(height: 10,),
+                        Image.asset("images/reportw.png",
+                        //fit: BoxFit.cover,
+                        width: 100,
+                        )
+                      ],
+                    )
                   )
                 ]))
                 :Center(

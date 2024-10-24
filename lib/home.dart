@@ -31,6 +31,7 @@ class Home extends StatefulWidget {
     }
   }
 class _HomeState extends State<Home> {
+    String NNU="NNU";
     final networkHandler = NetworkHandlerS();
   List<Map<String,dynamic>> students=[];
   var studentsnames=[];
@@ -126,9 +127,24 @@ class _HomeState extends State<Home> {
       for(var map in students){
         map.forEach((key, value) {
           if(key=="fname"&& value.substring(0,1)==values){
-            queryResultSet.add(map);
+            Map<String,dynamic> tempc={
+              "Name":map['fname']+" "+map['lname'],
+              "ID":map['RegNum'],
+              "Email":map['SEmail'],
+              "img":map['img'],
+            };
+            queryResultSet.add(tempc);
           }
         });
+      }
+      if(NNU.substring(0,1)==values){
+              Map<String,dynamic> tempc={
+              "Name":"NNU Admin",
+              "ID":"000",
+              "Email":"Najah@gmail.com",
+              "img":"uploads\\000.jpg",
+            };
+            queryResultSet.add(tempc);        
       }
       print("queryResultSet=$queryResultSet");
      /* DatabaseMethods().Search(value).then((QuerySnapshot docs) {
@@ -142,7 +158,8 @@ class _HomeState extends State<Home> {
     } else {
       tempSearchStore = [];
       queryResultSet.forEach((element) {
-        String temp=element['fname']+" "+element['lname'];
+       // String temp=element['fname']+" "+element['lname'];
+       String temp=element['Name'];
         if (temp.startsWith(values)) {
           setState(() {
             tempSearchStore.add(element);
@@ -265,18 +282,18 @@ class _HomeState extends State<Home> {
       onTap: () async {
         search = false;
 
-        var chatRoomId = getChatRoomIdbyUsername(myUserName!, data["RegNum"]);
+        var chatRoomId = getChatRoomIdbyUsername(myUserName!, data["ID"]);
         Map<String, dynamic> chatRoomInfoMap = {
-          "users": [myUserName, data["RegNum"]],
+          "users": [myUserName, data["ID"]],
         };
         await createChatRoom(chatRoomId, chatRoomInfoMap);
         Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => ChatPage(
-                    name: data["fname"]+" "+data["lname"],
+                    name: data["Name"],
                     profileurl: data["img"],
-                    username: data["RegNum"],
+                    username: data["ID"],
                     cinfo: widget.cominfo,
                     chatid: chatRoomId,)));
       },
@@ -306,7 +323,7 @@ class _HomeState extends State<Home> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      data["fname"]+" "+data["lname"],
+                      data["Name"],
                       style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -316,7 +333,7 @@ class _HomeState extends State<Home> {
                       height: 8.0,
                     ),
                     Text(
-                      data["SEmail"],
+                      data["Email"],
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 15.0,
@@ -366,6 +383,12 @@ class _ChatRoomListTileState extends State<ChatRoomListTile> {
     profilePicUrl=studentinfo['img'];
     id=studentinfo['RegNum'];
        setState(() {});
+    }else if(username.length==3){
+          name="NNU Admin";
+    profilePicUrl="uploads\\000.jpg";
+    id="000";
+           setState(() {});
+
     }
    /* QuerySnapshot querySnapshot = await DatabaseMethods().getUserInfo(username.toUpperCase());
     name = "${querySnapshot.docs[0]["Name"]}";

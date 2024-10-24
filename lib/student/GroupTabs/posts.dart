@@ -28,12 +28,14 @@ class groupHomePage extends StatefulWidget {
 class _MyHomePageState extends State<groupHomePage> {
     Map<String, dynamic>  groupinfo={};
     List<Map<String,dynamic>> groupposts=[];
+    List<Map<String,dynamic>> posts=[];
     final networkHandlerC = NetworkHandlerC();
     bool isDataReady=false;
 void initState() {
   super.initState();
   fetchData().then((_) {
     setState(() {
+      groupposts=List.from(posts.reversed);
       isDataReady = true; // Set the flag to true when data is fetched
     });
     });
@@ -47,8 +49,8 @@ Future<void> fetchData() async {
     groupinfo.values.forEach((value) {
       print(value);
     });
-    groupposts= await networkHandlerC.getGroupsposts(widget.idgroup);
-    for (var map in groupposts) {
+    posts= await networkHandlerC.getGroupsposts(widget.idgroup);
+    for (var map in posts) {
       map.forEach((key, value) {
         print('$key: $value');
       });

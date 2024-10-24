@@ -1,44 +1,111 @@
 // ignore: file_names
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:untitled4/BCompany.dart';
 import 'package:untitled4/BStudent.dart';
 import 'package:untitled4/student/companypage.dart';
-
+import 'dart:convert' ;
+import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 bool s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
 
 class RatingPost extends StatefulWidget {
+   final VoidCallback onDataRefresh;
   late Map<String,dynamic> stu;
   late List<String> frameworks;
+  late List<String> groupsid;
     late String ID;
  /* var name;
   var photo;*/
-  RatingPost(this.stu,this.ID,this.frameworks);
+  
+  RatingPost(this.stu,this.ID,this.frameworks,this.groupsid, this.onDataRefresh);
 
   @override
   // ignore: library_private_types_in_public_api
-  _RatingPostState createState() => _RatingPostState(this.stu,this.ID,this.frameworks);
+  _RatingPostState createState() => _RatingPostState(this.stu,this.ID,this.frameworks,this.groupsid);
 }
 
 class _RatingPostState extends State<RatingPost> {
   late Map<String,dynamic> stu;
   late String ID;
   Map<String,dynamic> companyinfo={};
+  late List<String> groupsid;
   final networkHandlerC = NetworkHandlerC();
   final networkHandler = NetworkHandlerS();
   TextEditingController des=TextEditingController();
   late int rate;
   String dropdownValue = "Framework";
+  String gid = "";
   late List<String> frameworks;
  /* String namee;
   String photoo;*/
-  _RatingPostState(this.stu,this.ID,this.frameworks);
+  _RatingPostState(this.stu,this.ID,this.frameworks,this.groupsid);
  @override
   void initState() {
     // TODO: implement initState
     super.initState();
     frameworks.add("Framework");
   }
+  void sendPushMessage(String token, String body , String title ,String type ,String postid )async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title,
+              'ID':widget.stu['RegNum'],
+              'img':widget.stu['img'],
+              'name':widget.stu['fname']+" "+widget.stu['lname'],
+              'type':type,
+              'eid':postid
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
+
+  String messageId="";
+  String _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  Map<String,dynamic> temp={};
+String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+  length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+  Future AddMessage(String userid, String nid,Map<String, dynamic> notif) async {
+    print("inside add new noti");
+    return FirebaseFirestore.instance
+        .collection("UserTokens")
+        .doc(userid)
+        .collection("notifications")
+        .doc(nid)
+        .set(notif);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -50,6 +117,7 @@ class _RatingPostState extends State<RatingPost> {
             icon: const Icon(Icons.arrow_back),
             iconSize: 30,
             onPressed: () {
+              widget.onDataRefresh();
               Navigator.of(context).pop();
             },
           ),
@@ -131,6 +199,7 @@ class _RatingPostState extends State<RatingPost> {
                           icon: (s1)
                               ? Icon(
                                   Icons.star,
+                                  //color: const Color.fromARGB(255, 12, 24, 87),
                                   color: Color(0xffffc300),
                                 )
                               : Icon(Icons.star_border),
@@ -270,6 +339,13 @@ class _RatingPostState extends State<RatingPost> {
                             onChanged: (String? newValue) {
                               setState(() {
                                 dropdownValue = newValue!;
+                                for(int x=0;x<frameworks.length;x++){
+                                  if(frameworks[x]==newValue){
+                                    gid=groupsid[x];
+                                  }
+                                }
+                              
+
                               });
                             },
                             items: frameworks.map((String name){
@@ -307,6 +383,7 @@ class _RatingPostState extends State<RatingPost> {
                                         }
                                       }
                                       Map<String,dynamic> ratingvar={
+                                        'groupid':gid,
                                         'RegNum':widget.stu['RegNum'],
                                         'name':stu['fname']+" "+stu['lname'],
                                         'img':widget.stu['img'],
@@ -318,6 +395,37 @@ class _RatingPostState extends State<RatingPost> {
                                       companyinfo['rating'].add(ratingvar);
                                       networkHandler.updatefinishedcourses(widget.stu['RegNum'], widget.stu['finishedGroups']);
                                       networkHandlerC.updaterating(ID,  companyinfo['rating']);
+                                      DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(companyinfo['ID']).get();
+                                      //String token = snap['token'];
+                                      //print(token);
+                                      //sendPushMessage(token, "TrainLink" , "New feedback about your $dropdownValue training from ${widget.stu['fname']+" "+widget.stu['lname']} ",'rate',"");
+                                       ////////
+                                     
+                                     if (snap.exists) {
+                                      if (snap.data() != null && snap['token']!= null) {
+                                        String token = snap['token'];
+                                    print(token);
+                                    sendPushMessage(token, "TrainLink" , "New feedback about your $dropdownValue training from ${widget.stu['fname']+" "+widget.stu['lname']} ",'rate',"");
+                                    Map<String,dynamic> newtemp={
+                                              'title':'TrainLink',
+                                              'body':"New feedback about your $dropdownValue training from ${widget.stu['fname']+" "+widget.stu['lname']} ",
+                                              'time':FieldValue.serverTimestamp(),
+                                              'ID':widget.stu['RegNum'] ?? "",
+                                              'img':widget.stu['RegNum']?? "",
+                                              'name':widget.stu['fname']+" "+widget.stu['lname']?? "",
+                                              'type':'rate' ,
+                                              'eid': "",
+                                            };
+                                      messageId = getRandomString(10) ;
+                                      AddMessage(companyinfo['ID'], messageId, newtemp);                                        
+                                      } else {
+                                        print("The 'token' field does not exist in the document.");
+                                      }
+                                    } else {
+                                      print("Document does not exist with the specified ID.");
+                                    }
+                                       ///                                               
+                                      widget.onDataRefresh();
                                       Navigator.of(context).pop();
                                     },
                                   ),

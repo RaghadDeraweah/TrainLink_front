@@ -1,13 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:readmore/readmore.dart';
 import 'package:untitled4/BStudent.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:untitled4/BCompany.dart';
-import 'dart:convert' as convert;
+import 'dart:convert' ;
 import 'package:http/http.dart' as http;
-
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -17,7 +20,7 @@ Future<List<Map<String, dynamic>>> fetchPosts(String companyId) async {
     final response = await http.get(Uri.parse("http://localhost:5000/post/posts/$companyId"));
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = convert.jsonDecode(response.body);
+      List<dynamic> jsonData = jsonDecode(response.body);
       List<Map<String, dynamic>> posts = [];
 
       for (var item in jsonData) {
@@ -38,8 +41,8 @@ bool isCliked=false;
 String? IDS;
 int finishedhours=0;
 bool isDataReady=false;
-String? location = null;
-String? framework = null;
+String? location = "location";
+String? framework = "Framework";
 bool stateOnline = false;
 bool stateUniv = false;
 bool alwaysfalse = true;
@@ -53,6 +56,26 @@ final networkHandlers = NetworkHandlerS();
 final networkHandlerC = NetworkHandlerC();
 List<Map<String, dynamic>> reversedItems=[];
 List<dynamic> ss=[];
+
+
+    String messageId="";
+  String _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  Map<String,dynamic> temp={};
+String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+  length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+  Future AddMessage(String userid, String nid,Map<String, dynamic> notif) async {
+    print("inside add new noti");
+    return FirebaseFirestore.instance
+        .collection("UserTokens")
+        .doc(userid)
+        .collection("notifications")
+        .doc(nid)
+        .set(notif);
+  }
+
+
+
    Future<void> update() async {
     List<Map<String,dynamic>> te=[];
     for(int i=0; i<filteredData.length;i++){
@@ -72,7 +95,7 @@ List<dynamic> ss=[];
         setState(() {
         filteredData = List.from(postss.reversed);
         avaliblepostss=filteredData;
-        count=avaliblepostss.length;
+        //count=avaliblepostss.length;
         print(postss);
           isDataReady = true; // Set the flag to true when data is fetched
         });
@@ -130,7 +153,44 @@ List<dynamic> ss=[];
       },
     );
   }
-
+  void sendPushMessage(String token, String body , String title ,String type ,String postid )async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title,
+              'ID':IDS,
+              'img':studentinfo['img'],
+              'name':studentinfo['fname']+" "+studentinfo['lname'],
+              'type':type,
+              'eid':postid
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     
@@ -175,7 +235,212 @@ List<dynamic> ss=[];
                             fontSize: 13),
                         alignment: Alignment.center,
                         onChanged: (String? newValue) {
-                          if(newValue !="Nothing"){
+                                            if (newValue == "location" && framework=="Framework" && !stateOnline && !stateUniv) {
+                                              avaliblepostss=filteredData;
+                                            } else if(newValue !="location" && framework=="Framework" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                            
+                                            } else if(newValue !="location" && framework!="Framework" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['field']==framework){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                  
+                                            } else if(newValue !="location" && framework!="Framework" && stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['field']==framework && filteredData[i]['isRemotly']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(newValue !="location" && framework!="Framework" && !stateOnline && stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['field']==framework && filteredData[i]['isUni']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(newValue !="location" && framework!="Framework" && stateOnline && stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['field']==framework && filteredData[i]['isRemotly'] && filteredData[i]['isUni']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(newValue !="location" && framework=="Framework" && stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                               
+                                            } else if (newValue != "location" && framework=="Framework" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });        
+                                            } else if (newValue != "location" && framework=="Framework" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==newValue && filteredData[i]['isUni'] && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            }); 
+                                            }if (newValue == "location" && framework!="Framework" && !stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "location" && framework!="Framework" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework &&filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "location" && framework!="Framework" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "location" && framework!="Framework" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework &&filteredData[i]['isRemotly'] &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "location" && framework=="Framework" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly']  ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "location" && framework=="Framework" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly'] &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "location" && framework=="Framework" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }
+                                        setState(() {                 
+                                        if (newValue == "location") {
+                                          location = "location";
+                                        } else {
+                                          location = newValue!;
+                                        }
+                                      });
+                        /*  if(newValue !=""){
                           List<Map<String,dynamic>> te=[];
                           for(int i=0; i<filteredData.length;i++){
                             //print("location");
@@ -187,21 +452,12 @@ List<dynamic> ss=[];
                           print("avaliblepostss from location");
                           print(filteredData.length);
                           print(te);
-                              setState(() {
+                          setState(() {
                                 avaliblepostss=te;  
                               });
                         } else{
                           avaliblepostss=filteredData; 
-                        }                                
-                            setState(() {                            
-                            if (newValue == "Nothing") {
-                              location = null;
-                            } else {
-                              location = newValue!;
-                              print(location);
-
-                            }
-                          });
+                        } */                               
                         },
                         items: [
                           DropdownMenuItem(
@@ -280,14 +536,14 @@ List<dynamic> ss=[];
                             child: Container(
                               width: 80,
                               child: Text(
-                                "Nothing",
+                                "location",
                               ),
                             ),
-                            value: "Nothing",
+                            value: "location",
                           )
                         ],
                         value: location,
-                        icon: location !=null 
+                        icon: location !="location" 
                             ? Icon(
                                 Icons.location_on,
                                 color: Colors.amber,
@@ -302,6 +558,7 @@ List<dynamic> ss=[];
                       height: 50,
                       // color: Colors.blue,+
                       child: DropdownButton<String>(
+                        menuMaxHeight: 200,
                         underline: Container(),
                         // padding: EdgeInsets.only(left: 0),
                         hint: Text(
@@ -314,7 +571,212 @@ List<dynamic> ss=[];
                             fontSize: 13),
                         alignment: Alignment.center,
                         onChanged: (String? newValue) { 
-                        if(newValue != "Nothing"){
+                                           if (newValue == "Framework" && location=="location" && !stateOnline && !stateUniv) {
+                                              avaliblepostss=filteredData;
+                                            } else if(newValue !="Framework" && location=="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==newValue){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                            
+                                            } else if(newValue !="Framework" && location!="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field']==newValue){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                  
+                                            } else if(newValue !="Framework" && location!="location" && stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field']==newValue && filteredData[i]['isRemotly']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(newValue !="Framework" && location!="location" && !stateOnline && stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field']==newValue && filteredData[i]['isUni']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(newValue !="Framework" && location!="location" && stateOnline && stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field']==newValue && filteredData[i]['isRemotly'] && filteredData[i]['isUni']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(newValue !="Framework" && location=="location" && stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==newValue && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                               
+                                            } else if (newValue != "Framework" && location=="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==newValue && filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });        
+                                            } else if (newValue != "Framework" && location=="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==newValue && filteredData[i]['isUni'] && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            }); 
+                                            }if (newValue == "Framework" && location!="location" && !stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "Framework" && location!="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location &&filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "Framework" && location!="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "Framework" && location!="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location &&filteredData[i]['isRemotly'] &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "Framework" && location=="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly']  ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "Framework" && location=="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly'] &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (newValue == "Framework" && location=="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }
+                                            setState(() {                 
+                                            if (newValue == "Framework") {
+                                              framework = "Framework";
+                                            } else {
+                                              framework = newValue!;
+                                            }
+                                          });                                            
+                       /* if(newValue != "Nothing"){
                           List<Map<String,dynamic>> te=[];
                           for(int i=0; i<filteredData.length;i++){
                             //print("location");
@@ -334,13 +796,13 @@ List<dynamic> ss=[];
                         }  
 
                           setState(() {                                                       
-                            if (newValue == "Nothing") {
-                              framework = null;
+                            if (newValue == "") {
+                              framework = "";
                             } else {                            
                               framework = newValue!;
                               print(framework);
                             }
-                          });
+                          });*/
                         },
                         items: [
                           DropdownMenuItem(
@@ -463,14 +925,14 @@ List<dynamic> ss=[];
                             child: Container(
                               width: 80,
                               child: Text(
-                                "Nothing",
+                                "Framework",
                               ),
                             ),
-                            value: "Nothing",
+                            value: "Framework",
                           ),
                         ],
                         value: framework,
-                        icon: framework != null
+                        icon: framework != "Framework"
                             ? Icon(
                                 Icons.computer,
                                 color: Colors.amber,
@@ -492,7 +954,205 @@ List<dynamic> ss=[];
                           message: "Is it online?",
                           child: IconButton(
                           onPressed: () {
-                          if(!stateOnline){
+                                           if (framework == "Framework" && location=="location" && stateOnline && !stateUniv) {
+                                              avaliblepostss=filteredData;
+                                            } else if(framework =="Framework" && location=="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                            
+                                            } else if(framework !="Framework" && location=="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly'] && filteredData[i]['field']==framework){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                  
+                                            } else if(framework =="Framework" && location!="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['isRemotly']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(framework =="Framework" && location=="location" && !stateOnline && stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] && filteredData[i]['isRemotly']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(framework !="Framework" && location!="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field']==framework && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(framework !="Framework" && location=="location" && !stateOnline && stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework && filteredData[i]['isRemotly'] && filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                               
+                                            } else if (framework == "Framework" && location!="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['isUni'] && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });        
+                                            } else if (framework != "Framework" && location!="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework && filteredData[i]['location']==location&& filteredData[i]['isUni'] && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            }); 
+                                            }if (framework == "Framework" && location!="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location=="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework == "Framework" && location!="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework == "Framework" && location=="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location!="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field'] ==framework ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location=="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework &&filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location!="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] && filteredData[i]['field']==framework && filteredData[i]['location']==location ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }
+                         /* if(!stateOnline){
                           List<Map<String,dynamic>> te=[];
                           for(int i=0; i<filteredData.length;i++){
                               if(filteredData[i]['isRemotly']){
@@ -508,7 +1168,7 @@ List<dynamic> ss=[];
                           });
                           }else{
                             avaliblepostss=filteredData;
-                          }                               
+                          }     */                          
                         setState(() {                                
                           stateOnline = !stateOnline;
                           print("stateOnline = $stateOnline");
@@ -532,7 +1192,205 @@ List<dynamic> ss=[];
                           message: "Is it for University?",
                           child: IconButton(
                             onPressed: () {
-                          if(!stateUniv){
+                                          if (framework == "Framework" && location=="location" && !stateOnline && stateUniv) {
+                                              avaliblepostss=filteredData;
+                                            } else if(framework =="Framework" && location=="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                            
+                                            } else if(framework !="Framework" && location=="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] && filteredData[i]['field']==framework){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                  
+                                            } else if(framework =="Framework" && location!="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['isUni']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(framework =="Framework" && location=="location" && stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isUni'] && filteredData[i]['isRemotly']){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(framework !="Framework" && location!="location" && !stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field']==framework && filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                                    
+                                            } else if(framework !="Framework" && location=="location" && stateOnline && !stateUniv){
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework && filteredData[i]['isRemotly'] && filteredData[i]['isUni'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });                                               
+                                            } else if (framework == "Framework" && location!="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['isUni'] && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });        
+                                            } else if (framework != "Framework" && location!="location" && stateOnline && !stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework && filteredData[i]['location']==location&& filteredData[i]['isUni'] && filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            }); 
+                                            }if (framework == "Framework" && location!="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location=="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework == "Framework" && location!="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location &&filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework == "Framework" && location=="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location!="location" && !stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['location']==location && filteredData[i]['field'] ==framework ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location=="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['field']==framework &&filteredData[i]['isRemotly'] ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }if (framework != "Framework" && location!="location" && stateOnline && stateUniv) {
+                                            List<Map<String,dynamic>> te=[];
+                                            for(int i=0; i<filteredData.length;i++){
+                                                if(filteredData[i]['isRemotly'] && filteredData[i]['field']==framework && filteredData[i]['location']==location ){
+                                                  print("inside ifff");
+                                                  te.add(filteredData[i]);                                                
+                                                }                           
+                                              }
+                                            print("avaliblepostss from location");
+                                            print(te);
+                                            setState(() {
+                                              avaliblepostss=te;  
+                                            });
+                                            }
+                          /*if(!stateUniv){
                           List<Map<String,dynamic>> te=[];
                           for(int i=0; i<filteredData.length;i++){
                               if(filteredData[i]['isUni']){
@@ -548,7 +1406,7 @@ List<dynamic> ss=[];
                           });
                           }else{
                             avaliblepostss=filteredData;
-                          }                                
+                          }  */                              
                           setState(() {                                
                                 stateUniv = !stateUniv;
                                 print("stateUniv = $stateUniv");
@@ -592,7 +1450,7 @@ List<dynamic> ss=[];
                 delegate:
                  SliverChildBuilderDelegate(
                   (context, index) {
-                                          return Card(
+                    return Card(
                       child: Row(
                         children: <Widget>[
                           Container(
@@ -822,33 +1680,88 @@ List<dynamic> ss=[];
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             IconButton(
-                                              onPressed: () {
+                                              onPressed: () async {
                                                 if(studentinfo['available']==false){
                                                   _showDialog(context,'You already In Training , ypu cant applay for any training until you finish current training.');
-                                                }
-                                                else if(studentinfo['request']==true && studentinfo['available']==true){
-                                                  _showDialog(context,'You applay a training please wait for company reply .');
+                                                }else if(studentinfo['request'] && studentinfo['postid']== avaliblepostss[index]['_id']){
+                                                  avaliblepostss[index]['appliedStuId'].remove(studentinfo['RegNum']);
+                                                  networkHandlerC.updateapllidStuId(avaliblepostss[index]['_id'],avaliblepostss[index]['appliedStuId']);
+                                                  networkHandlers.updatepostidstud(studentinfo['RegNum'],"",false);
+                                                  setState(() {
+                                                  isCliked=true;
+                                                });
+                                                }else if(studentinfo['request']==true && studentinfo['available']==true){
+                                                  _showDialog(context,'You applay for training please wait for company reply .');
                                                 }                              
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==true){
                                                   _showDialog(context,'You already Finshed Your University Training .');
                                                 }     
                                                 else if(studentinfo['available']==true && avaliblepostss[index]['isUni']==true && studentinfo['universityTraining']==false && finishedhours<120){
-                                                  _showDialog(context,'You have not completed the number of hours required to register for university training');
+                                                  _showDialog(context,'You have not complete the number of hours required to register for university training');
                                                 }                                             
                                                 else if(studentinfo['available'] || studentinfo['request']==false ){
                                                 setState(() {
-                                                isCliked=true;
+                                                //isCliked=true;
+                                                isDataReady=false;
                                                 ss=avaliblepostss[index]['appliedStuId'];//.add(studentinfo['RegNum']);
                                                 ss.add(studentinfo['RegNum']);
                                                 });
                                                 networkHandlerC.updateapllidStuId( avaliblepostss[index]['_id'], ss);
                                                 networkHandlers.updatepostidstud(studentinfo['RegNum'],avaliblepostss[index]['_id'],true);
+                                                DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(avaliblepostss[index]['cid']).get();
+                                                if (snap.exists) {
+                // Check if the 'token' field exists in the document
+                                                    if (snap.data() != null && snap['token']!= null) {
+                                                      String token = snap['token'];
+                                                      print(token);
+                                                      sendPushMessage(token,"New request on your training from ${studentinfo['fname']+" "+studentinfo['lname']} ","TrainLink" , 'post',avaliblepostss[index]['_id']);
+                                                      Map<String,dynamic> newtemp={
+                                                            'title':'TrainLink',
+                                                            'body':"New request on your training from ${studentinfo['fname']+" "+studentinfo['lname']} ",
+                                                            'time':FieldValue.serverTimestamp(),
+                                                            'ID':IDS ?? "",
+                                                            'img':studentinfo['img'] ?? "",
+                                                            'name':studentinfo['fname']+" "+studentinfo['lname']?? "",
+                                                            'type':'group' ,
+                                                            'eid': avaliblepostss[index]['_id']?? "",
+                                                          };
+                                                    messageId = getRandomString(10) ;
+                                                    AddMessage(avaliblepostss[index]['cid'], messageId, newtemp);                                        
+                                                    } else {
+                                                      print("The 'token' field does not exist in the document.");
+                                                    }
+                                                  } else {
+                                                    print("Document does not exist with the specified ID.");
+                                                  }
+                                                setState(() {
+                                                  isCliked=true;
+                                                });
+                                                }
+                                                if(isCliked){
+                                                setState(() {
+                                                  postss=[];
+                                                });
+                                                fetchData().then((_) {
+                                                        setState(() {
+                                                          
+                                                        filteredData = List.from(postss.reversed);
+                                                        avaliblepostss=filteredData;
+                                                        count=avaliblepostss.length;
+                                                        print(postss);
+                                                        isDataReady = true;
+                                                        isCliked=false; // Set the flag to true when data is fetched
+                                                        });
+                                                        });                                                  
                                                 }
 
                                               },
                                               iconSize: 25,
-                                              icon: Icon(Icons.check),
-                                              color: studentinfo['request']
+                                              icon: studentinfo['request'] || (!studentinfo['request'] && !studentinfo['available'])
+                                              ? studentinfo['postid']== avaliblepostss[index]['_id']
+                                              ? Icon(Icons.close)
+                                              : Icon(Icons.check)
+                                              : Icon(Icons.check),
+                                              color: studentinfo['request'] || (!studentinfo['request'] && !studentinfo['available'])
                                               ? studentinfo['postid']== avaliblepostss[index]['_id']
                                               ?  Color(0xffffc300)
                                               : Color.fromARGB(255, 105, 103, 98)
@@ -858,9 +1771,13 @@ List<dynamic> ss=[];
                                             Padding(
                                               padding: const EdgeInsets.only(top: 6),
                                               child: Text(
-                                                "Request",
+                                                studentinfo['request'] || (!studentinfo['request'] && !studentinfo['available'])
+                                                ? studentinfo['postid']== avaliblepostss[index]['_id']
+                                                ? "Cancel"
+                                                : "Request"
+                                                :"Request",
                                                 style: TextStyle(
-                                              color: studentinfo['request']
+                                              color: studentinfo['request'] || (!studentinfo['request'] && !studentinfo['available'])
                                               ? studentinfo['postid']== avaliblepostss[index]['_id']
                                               ?  Color(0xffffc300)
                                               : Color.fromARGB(255, 105, 103, 98)

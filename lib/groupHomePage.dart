@@ -239,9 +239,9 @@ Future<void> fetchData() async {
                                       borderRadius:
                                           BorderRadius.circular(60.0))),
                               onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
+                                /*Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) => GroupPost(widget.cname,widget.CID,widget.cimg,widget.idgroup,groupinfo['groupname']),
-                                ));
+                                ));*/
                               },
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 13.0),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
 
@@ -47,28 +49,192 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool containerVisible = false;
   bool containerVisible2 = false;
+  bool isDataReady = false;
+  int finalrate=0;
+     File? _image;
+  double evaluation=0;
+  double mapValue(double x, double min1, double max1, double min2, double max2) {
+  return min2 + (max2 - min2) * ((x - min1) / (max1 - min1));
+}
+  bool s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+ 
+  void initState() {
+  super.initState();
+      fetchData().then((_) {
+      setState(() {
+        isDataReady=true;
 
+      });
+      },);
+      }
+Future<void> fetchData() async {
+  try {
+    if(widget.stu['finishedGroups']!=[]){
+      for(int x=0;x<widget.stu['finishedGroups'].length;x++){
+        evaluation+=widget.stu['finishedGroups'][x]['mark'];
+        print("evaluation= $evaluation");
+      }}
+      if(evaluation!=0.0){
+      evaluation=evaluation/widget.stu['finishedGroups'].length;
+      print("evaluation after div= $evaluation");
+      
+      finalrate=mapValue(evaluation,0,100,0,5).round();
+      print("finalrate= $finalrate");
+      }
+if (finalrate == 1) {
+    s1 = true;
+  } else if (finalrate == 2) {
+    s2 = true;
+    s1 = true;
+  } else if (finalrate == 3) {
+    s1 = true;
+    s2 = true;
+    s3 = true;
+  } else if (finalrate == 4) {
+    s1 = true;
+    s2 = true;
+    s3 = true;
+    s4 = true;
+  } else if (finalrate == 5) {
+    s1 = true;
+    s2 = true;
+    s3 = true;
+    s4 = true;
+    s5 = true;
+  }
+
+    isDataReady=true;
+  } catch (error) {
+    print(error);
+  }
+}
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
+    
+    return isDataReady
+    ?CustomScrollView(
+      
        shrinkWrap: true,
             slivers: [
               SliverAppBar(
-                pinned: true,
-                backgroundColor: Colors.white,
-                expandedHeight: 250, // Set the height you want for the flexible space
+                //pinned: true,
+                leading: Icon(Icons.access_alarms_rounded,color: Color(0xff0F2C59),),
+                backgroundColor: Color.fromARGB(255, 255, 255, 255),
+                expandedHeight: 270, // Set the height you want for the flexible space
                 flexibleSpace: FlexibleSpaceBar(
-                 background:Container(
+                background:
+                Stack(children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: 
+                   Container(
+                  padding: EdgeInsets.only(top: 60,),
                 width: 360,
-                height: 250,
-
-                // color: Colors.yellow,
+                height: 270,
                 decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage("images/training.jpeg"))),
-                margin: EdgeInsets.only(top: 65),
-              ) )
+                  shape: BoxShape.rectangle,
+                  color: Color(0xff0F2C59),
+                        ),               
+                child:
+                 Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                    Container(     
+                     // margin: EdgeInsets.only(left: 10),                       
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border:Border.all(color:Color.fromARGB(97, 15, 45, 89) ,width: 5,style: BorderStyle.solid),
+                              color: Color.fromARGB(97, 15, 45, 89) ,
+                            ),
+                            height: 100,
+                            width: 110,
+                            child: CircleAvatar(
+                          radius: 80, // Customize the radius as needed
+                          foregroundColor: Color.fromARGB(253, 15, 45, 89),
+                          backgroundImage: _image != null 
+                          ? FileImage(_image!) 
+                          : NetworkImage("http://localhost:5000/" + widget.stu['img']) as ImageProvider,
+                        
+                        ),
+                        ),                    
+
+                  Container(width: 20,color:Color(0xff0F2C59) ,),
+                  Expanded(
+                    child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.stu['fname']+" "+widget.stu['lname'],style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold),),
+                        Row(
+                        children: [
+                          Icon(
+                            (s1) ? Icons.star : Icons.star_border,
+                            color: (s1) ? Color(0xffffc300) : Color.fromARGB(255, 102, 102, 102),
+                            size: 20,
+                          ),
+                          Icon(
+                            (s2) ? Icons.star : Icons.star_border,
+                            color: (s2) ? Color(0xffffc300) : Color.fromARGB(255, 102, 102, 102),
+                            size: 20,
+                          ),
+                          Icon(
+                            (s3) ? Icons.star : Icons.star_border,
+                            color: (s3) ? Color(0xffffc300) : Color.fromARGB(255, 102, 102, 102),
+                            size: 20,
+                          ),
+                          Icon(
+                            (s4) ? Icons.star : Icons.star_border,
+                            color: (s4) ? Color(0xffffc300) : Color.fromARGB(255, 102, 102, 102),
+                            size: 20,
+                          ),
+                          Icon(
+                            (s5) ? Icons.star : Icons.star_border,
+                            color: (s5) ? Color(0xffffc300) : Color.fromARGB(255, 102, 102, 102),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ],),
+                    ),
+                  ],),
+                  Container(height: 10,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                    Column(children: [
+                      widget.stu['finishedGroups']==[]
+                      ? Text("0",style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.w800),)
+                      : Text( widget.stu['finishedGroups'].length.toString(),style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.w800),),
+                      Text("Trainings",style: TextStyle(color: Colors.white,fontSize: 14,fontWeight: FontWeight.w300),),
+                    ],),
+                    Column(children: [
+                      Container(height: 10,width: 40,),
+                      widget.stu['available']
+                      ?Text("Available",style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.w800),)
+                      :Text("Busy",style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.w800),),
+                      Text("Status",style: TextStyle(color: Colors.white,fontSize: 14,fontWeight: FontWeight.w300),),
+                    ],)                    
+                  ],)
+                ]),
+              )
+                ),
+                  Positioned(
+                    right: 0,
+                    left: 0,
+                    top: 240,
+                    child: Container(height: 30,decoration: BoxDecoration(
+                       color: Color.fromARGB(255, 255, 255, 255),
+                      borderRadius: BorderRadius.only(                  
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30)),),)
+                    ),
+                ],))
               ),
+
               widget.stu['finishedGroups'].isEmpty
               ? SliverToBoxAdapter(
                     child: Center(
@@ -79,7 +245,7 @@ class _MyHomePageState extends State<MyHomePage> {
               : SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return Company(context,widget.stu['finishedGroups'][index]['cname'],widget.stu['finishedGroups'][index]['cimg'],containerVisible,widget.stu['finishedGroups'][index]['isUni'],widget.stu['finishedGroups'][index]['hours'],
+                    return showD(context,widget.stu['finishedGroups'][index]['cname'],widget.stu['finishedGroups'][index]['cimg'],containerVisible,widget.stu['finishedGroups'][index]['isUni'],widget.stu['finishedGroups'][index]['hours'],
                     widget.stu['finishedGroups'][index]['StartDate'],widget.stu['finishedGroups'][index]['EndDate'],
                     widget.stu['finishedGroups'][index]['mark'],              
                     () {
@@ -93,65 +259,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   )
               )
             ]
-    );
-    /*return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Company(
-              context,
-              "Asal Technologies",
-              "images/asal.jpeg",
-              containerVisible,
-              'University Training',
-              '360',
-              '4 months',
-              'Pass',
-              '10/10',
-              '(Sep-2023)(Jan-2024)',
-              () {
-                setState(() {
-                  print("yes clicked");
-                  containerVisible = !containerVisible;
-                });
-              },
-            ),
-            Company(
-                context,
-                "ProGineer Technologies",
-                "images/progineer.jpg",
-                containerVisible2,
-                'Out of university training',
-                '100',
-                '2 months',
-                'Pass',
-                '10/10',
-                '(Mar-2023)(May-2023)', () {
-              setState(() {
-                print("yes clicked");
-                containerVisible2 = !containerVisible2;
-              });
-            }),
-            Container(
-              width: 360,
-              height: 360,
-
-              // color: Colors.yellow,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                      image: AssetImage("images/training.jpeg"))),
-              margin: EdgeInsets.only(top: 125),
-            )
-          ],
-        ),
-      ),
-    );*/
+    )
+    : Center(
+            child: CircularProgressIndicator(), // Loading indicator
+          );
   }
-
-  Widget Company(
-    context,
+Widget showD(  context,
     namecompany,
     image,
     containerVisible,
@@ -160,8 +273,7 @@ class _MyHomePageState extends State<MyHomePage> {
     start,
     end,
     mark,
-    Function toggleVisibility,
-  ) {
+    Function toggleVisibility,){
     final TextEditingController _cTypeTrain ;
     if(_cTypeTrainText==true){
        _cTypeTrain = TextEditingController(text: "University Training");
@@ -172,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final TextEditingController _cnumberOfhours =
         TextEditingController(text: _cnumberOfhoursText.toString());
     final TextEditingController _cmonth =
-        TextEditingController(text: "("+start+")-("+end+")");
+        TextEditingController(text: start);// "("+start+")-("+end+")");
     final TextEditingController _cstate ;
     final TextEditingController _cRange;
     if(mark>50){
@@ -185,53 +297,64 @@ class _MyHomePageState extends State<MyHomePage> {
       int r=mark/10;
       _cRange = TextEditingController(text: r.toString());
     }
-    //_controllertimeyear
-   /* final TextEditingController _ctimelevel =
-        TextEditingController(text: _ctimelevelText);*/
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Container(
-        // height: 600,
-        color: Colors.white,
-        child: Column(
-          children: [
-            Container(
-                width: 400,
-                // height: 450,
-                decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(30)),
-                margin: EdgeInsets.only(top: 15, left: 5),
-                child: Column(
-                  children: [
+    return Container(
+      width: 370,
+      height: containerVisible
+      ?270
+      :80,
+      margin: EdgeInsets.only(left:10,top:5),
+    child: Row(
+      children: [
+        Icon(Icons.verified_rounded,color: const Color.fromARGB(255, 117, 160, 235),size: 50,),
+        //SingleChildScrollView(
+         // child: 
+          Container(
+            width: 330,
+            height: containerVisible
+            ?240
+            :80,
+            margin: EdgeInsets.only(left:10),
+           // padding: EdgeInsets.only(top: 20,left: 15,bottom: 10,right: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color:  Color.fromARGB(144, 0, 53, 102)
+           ),  
+           child:SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
                     Container(
-                      width: 100,
+                      width: 50,
                       height: 50,
-
-                      // color: Colors.yellow,
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(190),
+                          borderRadius: BorderRadius.circular(60),
                           image: DecorationImage(
                               fit: BoxFit.cover, image: NetworkImage("http://localhost:5000/"+image))),
-                      margin: EdgeInsets.all(10),
+                      margin: EdgeInsets.only(top: 10,left: 10),                     
                     ),
+                    
                     Container(
-                      margin: EdgeInsets.only(left: 20, bottom: 10),
+                      width: 250,
+                      margin: EdgeInsets.only(left: 20,),// bottom: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        
                         children: [
                           Text(
                             namecompany,
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                              color: Color.fromARGB(255, 255, 255, 255) ,
+                                fontWeight: FontWeight.bold, fontSize: 20),
                           ),
                           Container(
                             margin: EdgeInsets.only(right: 15, top: 5),
                             child: MaterialButton(
-                              child: Text("Details"),
+                              child: containerVisible
+                              ?Icon(Icons.keyboard_arrow_up_sharp)
+                              :Icon(Icons.keyboard_arrow_down_sharp),
                               color: Color(0xff003566),
-                              textColor: Colors.white,
+                              textColor: Color.fromARGB(255, 255, 255, 255),
                               shape: const RoundedRectangleBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(30))),
@@ -242,11 +365,129 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       ),
-                    ),
+                    ),                    
+              ],),
                     Visibility(
                       visible: containerVisible,
-
-                      //  padding: const EdgeInsets.all(8.0),
+                      child: Column(children: [
+                        Container(
+                        margin: EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Kinds of training : ",
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Container(
+                                width: 150,
+                                child: TextField(
+                                  //      enabled: StartYearState,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color:  Color.fromARGB(255, 0, 53, 102), // Set the text color to green
+                                  ),
+                                  controller: _cTypeTrain,
+                                  // Optional: Style the text field
+                                  decoration: InputDecoration(
+                                    //   labelText: 'Field Label', // Change the label text if needed
+                                    border: InputBorder
+                                        .none, // Remove the default underline
+                                  ),
+                                ))
+                          ],
+                        ),
+                      ),
+                        Container(
+                        margin: EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Hours : ",
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Container(
+                                width: 100,
+                                child: TextField(
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                   color: Color.fromARGB(255, 0, 53, 102), // Set the text color to green
+                                  ),
+                                  controller: _cnumberOfhours,
+                                  // Optional: Style the text field
+                                  decoration: InputDecoration(
+                                    //   labelText: 'Field Label', // Change the label text if needed
+                                    border: InputBorder
+                                        .none, // Remove the default underline
+                                  ),
+                                ))
+                          ],
+                        ),
+                      ),
+                        Container(
+                       margin: EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Start Date Training  : ",
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Container(
+                                width: 100,
+                                child: TextField(
+                                  //   enabled: GYState,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 0, 53, 102),// Set the text color to green
+                                  ),
+                                  controller: _cmonth,
+                                  // Optional: Style the text field
+                                  decoration: InputDecoration(
+                                    //   labelText: 'Field Label', // Change the label text if needed
+                                    border: InputBorder
+                                        .none, // Remove the default underline
+                                  ),
+                                ))
+                          ],
+                        ),
+                      ),
+                        Container(
+                        margin: EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Evaluation : ",
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Container(
+                                width: 100,
+                                child: TextField(
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 0, 53, 102), // Set the text color to green
+                                  ),
+                                  controller: _cRange,
+                                  // Optional: Style the text field
+                                  decoration: InputDecoration(
+                                    //   labelText: 'Field Label', // Change the label text if needed
+                                    border: InputBorder
+                                        .none, // Remove the default underline
+                                  ),
+                                ))
+                          ],
+                        ),
+                      ),
+                      ],)
+                      ),     
+           /*         Visibility(
+                      visible: containerVisible,
                       child: Container(
                         margin: EdgeInsets.only(left: 15, top: 10),
                         child: Row(
@@ -254,16 +495,16 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               "Kinds of training : ",
                               style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Container(
-                                width: 200,
+                                width: 150,
                                 child: TextField(
                                   //      enabled: StartYearState,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors
-                                        .black, // Set the text color to green
+                                    color:  Color.fromARGB(255, 0, 53, 102), // Set the text color to green
                                   ),
                                   controller: _cTypeTrain,
                                   // Optional: Style the text field
@@ -284,17 +525,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Row(
                           children: [
                             Text(
-                              "Number of Hours : ",
+                              "Hours : ",
                               style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Container(
-                                width: 200,
+                                width: 100,
                                 child: TextField(
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors
-                                        .black, // Set the text color to green
+                                   color: Color.fromARGB(255, 0, 53, 102), // Set the text color to green
                                   ),
                                   controller: _cnumberOfhours,
                                   // Optional: Style the text field
@@ -308,38 +549,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    /*Visibility(
-                      visible: containerVisible,
-                      child: Container(
-                        margin: EdgeInsets.only(left: 15, top: 10),
-                        child: Row(
-                          children: [
-                            Text(
-                              "Timeframe : ",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            Container(
-                                width: 250,
-                                //color: Colors.red,
-                                child: TextField(
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors
-                                        .black, // Set the text color to green
-                                  ),
-                                  controller: _ctimelevel,
-                                  // Optional: Style the text field
-                                  decoration: InputDecoration(
-                                    //   labelText: 'Field Label', // Change the label text if needed
-                                    border: InputBorder
-                                        .none, // Remove the default underline
-                                  ),
-                                )),
-                          ],
-                        ),
-                      ),
-                    ),*/
                     Visibility(
                       visible: containerVisible,
                       child: Container(
@@ -347,18 +556,18 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Row(
                           children: [
                             Text(
-                              "Training Frame : ",
+                              "Start Date Training  : ",
                               style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Container(
-                                width: 200,
+                                width: 100,
                                 child: TextField(
                                   //   enabled: GYState,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors
-                                        .black, // Set the text color to green
+                                    color: Color.fromARGB(255, 0, 53, 102),// Set the text color to green
                                   ),
                                   controller: _cmonth,
                                   // Optional: Style the text field
@@ -372,7 +581,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    Visibility(
+                  /*  Visibility(
                       visible: containerVisible,
                       child: Container(
                         margin: EdgeInsets.only(left: 15, top: 10),
@@ -402,7 +611,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ],
                         ),
                       ),
-                    ),
+                    ),*/
                     Visibility(
                       visible: containerVisible,
                       child: Container(
@@ -410,17 +619,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Row(
                           children: [
                             Text(
-                              "Range : ",
+                              "Evaluation : ",
                               style: TextStyle(
+                                color: Color.fromARGB(255, 0, 53, 102),
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Container(
-                                width: 200,
+                                width: 100,
                                 child: TextField(
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors
-                                        .black, // Set the text color to green
+                                    color: Color.fromARGB(255, 0, 53, 102), // Set the text color to green
                                   ),
                                   controller: _cRange,
                                   // Optional: Style the text field
@@ -434,11 +643,16 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                  ],
-                )),
-          ],
-        ),
-      ),
+           */
+           ]),
+           ),
+          ),
+
+     // ),
+      ],
+      
+    )
     );
-  }
+    }
+
 }

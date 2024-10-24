@@ -6,14 +6,19 @@ import 'package:untitled4/postHomePage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:untitled4/BCompany.dart';
 import 'package:untitled4/HomePage.dart';
-import 'dart:convert' as convert;
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:untitled4/ratingReivews.dart';
 import 'package:untitled4/showStudents.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 //import 'package:read_more_text/read_more_text.dart';
 
 class HomeScreen extends StatefulWidget {
+  late String token="";
+  HomeScreen({required this.token});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -22,7 +27,7 @@ Future<List<Map<String, dynamic>>> fetchPosts(String companyId) async {
     final response = await http.get(Uri.parse("http://localhost:5000/post/posts/$companyId"));
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = convert.jsonDecode(response.body);
+      List<dynamic> jsonData = jsonDecode(response.body);
       List<Map<String, dynamic>> posts = [];
 
       for (var item in jsonData) {
@@ -31,12 +36,9 @@ Future<List<Map<String, dynamic>>> fetchPosts(String companyId) async {
 
       return posts;
     } else {
-      //print("faild : ${response.body}");
       throw Exception("faild : ${response.body}");
     }
 }
-String? contentPost =
-    "Happy HR Professional Day! 💙 \nBehind every successful organization lies an HR team dedicated to shaping company culture, fostering talent, managing compliance, and so much more. 🚀\n\n\nWe're privileged to partner with so many exceptional HR leaders across the globe, who passionately strive to make the service industry a better place - especially for frontline workers.\n We couldn't help but share some of their wisdom on this special day! 🎉⤵\n Events season is truly upon us! ⏳";
 
 class _HomeScreenState extends State<HomeScreen> {
   bool isDataReady=false;
@@ -93,73 +95,52 @@ Future<void> fetchData() async {
         print('$key: $value');
       });
     }
+   /* setState(() {
+    isDataReady=true;      
+    });*/
 
-    isDataReady=true;
   } catch (error) {
     print(error);
   }
 }
 
-    /*  appBar: AppBar(
-        actions: <Widget>[          
-      
-          Row(
-            children: <Widget>[
-              Container(
-                width: 390.0,
-                height: 50.0,
-                margin: EdgeInsets.only(top: 10, bottom: 10),
-                // color: Color(0xff003566),
-                child: Row(
-                  children: <Widget>[
-                    Column(
-                      children: <Widget>[
-                        IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.post_add,
-                              color: Color(0xff003566),
-                              size: 40.0,
-                            ))
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0, top: 2.0),
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                    width: 1.0, color: Colors.grey.shade400),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(60.0))),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => HomePost(),
-                              ));
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 13.0),
-                              child: Text(
-                                "Let's announce a training!                                ",
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.blueGrey),
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-          Divider(
-            color: Colors.grey[320],
-            thickness: 5.0,
-          ),] ),*/
-
+  void sendPushMessage(String token, String body , String title ,String type )async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title,
+              'ID':IDC,
+              'img':companyinfo['img'],
+              'name':companyinfo['Name'],
+              'type':type,
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     
@@ -170,10 +151,11 @@ Future<void> fetchData() async {
         shrinkWrap: true,
             slivers: [
               SliverAppBar(
-                leading: Icon(Icons.ac_unit_sharp,color: Color.fromARGB(255, 83, 27, 27),),
+                leading: Icon(Icons.arrow_back_ios,color: Color.fromARGB(255, 255, 255, 255),),
                 backgroundColor: Colors.white,
-                expandedHeight: 370.0, // Set the height you want for the flexible space
+                expandedHeight: 380.0, // Set the height you want for the flexible space
                 flexibleSpace: FlexibleSpaceBar(
+                 
                  background://Column(children: [     
                   Padding(
                     padding:EdgeInsets.only(top: 5.0),
@@ -192,24 +174,25 @@ Future<void> fetchData() async {
                     Row(children: [
                       companyinfo['isdeldete']
                         ?Container(
-                          margin: EdgeInsets.only(top: 5,left: 5),
+                          margin: EdgeInsets.only(top: 5,left: 12),
                         child:IconButton(onPressed:() {
+                          List<String> ss=companyinfo['deletedate'].split('T');
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            return  MyDialog2(companyinfo['reason'],companyinfo['deletedate']); // Your custom dialog content goes here
+                            return  MyDialog2(companyinfo['reason'],ss[0]); // Your custom dialog content goes here
                           },
                         );                          
-                        }, icon: Icon(Icons.warning_rounded,color: Colors.redAccent,)),)
+                        }, icon: Icon(Icons.warning_rounded,color: Colors.redAccent,size: 30,)),)
                         :Container(width: 40,),
                         // ),
                       Container(
-                        margin: EdgeInsets.only(top: 5,left: 310),
+                        margin: EdgeInsets.only(top: 5,left: 297),
                         child:IconButton(onPressed:() {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            return  MyDialog(companyinfo['Name'],companyinfo['img']); // Your custom dialog content goes here
+                            return  MyDialog(companyinfo['ID'],companyinfo['Name'],companyinfo['img'],companyinfo['Password']); // Your custom dialog content goes here
                           },
                         );
                          
@@ -276,7 +259,7 @@ Future<void> fetchData() async {
                                             if(!companyinfo['trainee'].isEmpty){
                                           Navigator.of(context).push(MaterialPageRoute(
                                           builder: (context) =>
-                                        trainee(companyinfo['trainee']),));
+                                        trainee(companyinfo['trainee'],companyinfo['ID']),));
                                           }},
                                           icon:Icon(
                                             Icons.person,
@@ -359,9 +342,19 @@ Future<void> fetchData() async {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
                               IconButton(
-                                        onPressed: () {
+                                  onPressed: () async{
+
+                                          setState(() {
+                                            isDataReady=false;
+                                          });
                                       Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => HomePost(companyinfo['Name'],companyinfo['ID'],companyinfo['img']),
+                                      builder: (context) => HomePost(onDataRefresh: ()async{   
+                                      fetchData().then((_) {
+                                      setState(() {
+                                        postss = List.from(reversedItems.reversed);
+                                        isDataReady = true; // Set the flag to true when data is fetched
+                                      });
+                                      });} ,cn :companyinfo['Name'],id :companyinfo['ID'],img :companyinfo['img']),
                                     ));
                                         },
                                         icon: Icon(
@@ -384,8 +377,17 @@ Future<void> fetchData() async {
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(60.0))),
                                   onPressed: () {
-                                    Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => HomePost(companyinfo['Name'],companyinfo['ID'],companyinfo['img']),
+                                           setState(() {
+                                            isDataReady=false;
+                                          });
+                                      Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => HomePost(onDataRefresh: ()async{   
+                                      fetchData().then((_) {
+                                      setState(() {
+                                        postss = List.from(reversedItems.reversed);
+                                        isDataReady = true; // Set the flag to true when data is fetched
+                                      });
+                                      });} ,cn :companyinfo['Name'],id :companyinfo['ID'],img :companyinfo['img']),
                                     ));
                                   },
                                   child: Container(
@@ -416,12 +418,7 @@ Future<void> fetchData() async {
                 ),
               ),
               postss.isEmpty 
-              ?SliverToBoxAdapter(
-                    child: Center(
-                      // Display a message or an alternative widget
-                      child: Text('No posts available.'),
-                    ),
-                  )
+              ?SliverToBoxAdapter(child: Center(child: Text('No posts available.'),),)
               : SliverList(
                 
                 delegate: SliverChildBuilderDelegate(
@@ -528,7 +525,17 @@ Future<void> fetchData() async {
                           :IconButton(
                             onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => showStu(postss[index]['_id'],companyinfo['ID'],companyinfo['Name'],companyinfo['img'], postss[index]['appliedStuId'])));
+                          builder: (context) => showStu(postid: postss[index]['_id'],CID: companyinfo['ID'],cname: companyinfo['Name'],cimg: companyinfo['img'], studentsid: postss[index]['appliedStuId'],onDataRefresh: ()async{   
+                                    fetchData().then((_) {
+                                      setState(() {
+                                        postss = List.from(reversedItems.reversed);
+                                        isDataReady = true; // Set the flag to true when data is fetched
+                                      });
+                                      });
+                                      }
+                                      )
+                                      )
+                                      );
                             },
                             icon: Icon(Icons.visibility_outlined,color: Colors.greenAccent
                             ))
@@ -848,21 +855,35 @@ class MyDialog extends StatelessWidget {
   //bool submit=false;
   late String CImg;
   late String name;
-  MyDialog(this.name,this.CImg);
+  late String ID;
+  late String pwd;
+  MyDialog(this.ID,this.name,this.CImg,this.pwd);
   final TextEditingController confirmid =TextEditingController();
   final TextEditingController reason =TextEditingController();
+  final networkHandlerC = NetworkHandlerC();
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      // Your dialog content goes here
-      child: Container(
+    return Container(
         width: 380,
         height: 390,
-         decoration: BoxDecoration( color: const Color.fromARGB(255, 255, 255, 255)),
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
+        // decoration: BoxDecoration( borderRadius: BorderRadius.circular(20),color: const Color.fromARGB(255, 255, 255, 255)),
+        //padding: EdgeInsets.all(16.0),
+        child:AlertDialog(
+           backgroundColor: Colors.white,
+         title: Text(
+
+              'Delete Confirmation',
+              //textAlign:,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 1, 30, 92),
+              ),
+            ),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
               Row(
                 children: [
@@ -870,8 +891,8 @@ class MyDialog extends StatelessWidget {
                     margin: const EdgeInsets.only(
                       left: 10, top: 10
                     ),
-                    height: 50,
-                    width: 50,
+                    height: 70,
+                    width: 70,
                     decoration: BoxDecoration(
                         borderRadius:
                             BorderRadius.circular(40.0),
@@ -887,6 +908,7 @@ class MyDialog extends StatelessWidget {
                     child: Text(
                       name,
                       style: TextStyle(
+                        fontSize: 25,
                         color: Color(0xff003566),
                           fontWeight: FontWeight.bold),
                     ),
@@ -894,8 +916,8 @@ class MyDialog extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(height: 40,),
-              Container(
+              Container(height: 20,),
+              /*Container(
 
               child: TextFormField(  
                                                 
@@ -918,9 +940,17 @@ class MyDialog extends StatelessWidget {
                     onChanged: (value) {
                       reason.text=value;
                     },
-                  ),),
+                  ),),*/
 
-              Divider(height: 20,),
+              /*SizedBox(height: 10,),
+              Text(
+                  'Please enter the your ID:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 30, 92),
+                  ),
+                ),
               Container(
 
                   child: TextFormField(
@@ -935,7 +965,7 @@ class MyDialog extends StatelessWidget {
                       // Optionally, you can customize the appearance of the text field
                       contentPadding: EdgeInsets.symmetric(
                           horizontal: 16.0),
-                      hintText: "Write Your ID here to confirm your request"
+                      hintText: "Confirm your ID"
                     ),
                     enabled:
                         true, 
@@ -944,15 +974,56 @@ class MyDialog extends StatelessWidget {
                     },
                   ),
 
+              ),*/
+               SizedBox(height: 10,),
+              Text(
+                  'Please enter the your password',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 30, 92),
+                  ),
+                ),
+              Container(
+
+                  child: TextFormField(
+                    controller: reason,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
+                    decoration: InputDecoration(
+                      // border: InputBorder.none,
+                      //focusedBorder: InputBorder.none,
+                      // Optionally, you can customize the appearance of the text field
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.0),
+                      hintText: "Confirm your Password"
+                    ),
+                    enabled:
+                        true, 
+                    onChanged: (value) {
+                      reason.text=value;
+
+                    },
+                  ),
+
               ),
 
-              Divider(height: 30,),
+              SizedBox(height: 30,),
+
+          ],
+        ),
+        actions: [
               ElevatedButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
                       Color(0xff003566)), // Change color here
                 ),
                 onPressed: () {
+                  if(pwd==reason.text){
+                    networkHandlerC.deletecompany(ID);
+                  }
                   // Close the dialog when the button is clicked
                   Navigator.of(context).pop();
                 },
@@ -961,9 +1032,9 @@ class MyDialog extends StatelessWidget {
                   style: TextStyle(color: Colors.amber),
                 ),
               ),
-          ],
+        ],
         ),
-      ),
+      //),
     );
   }
 }
@@ -974,27 +1045,42 @@ class MyDialog2 extends StatelessWidget {
   MyDialog2(this.Reason,this.DelDate);
   final TextEditingController confirmid =TextEditingController();
   final TextEditingController reason =TextEditingController();
-
+  //List<String> ss=DelDate.split('T');
   @override
   Widget build(BuildContext context) {
     return Dialog(
       // Your dialog content goes here
       child: Container(
         width: 380,
-        height: 390,
-         decoration: BoxDecoration( color: const Color.fromARGB(255, 255, 255, 255)),
+        height: 400,
+         decoration: BoxDecoration( 
+          //color: const Color.fromARGB(255, 255, 255, 255),
+          borderRadius: BorderRadius.circular(15)),
         padding: EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
+            Container(
+              width: 350,
+              alignment: Alignment.center,
+              child: 
+               Text("Deletion Alert",
+                style: TextStyle(
+                  fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 30, 92),
+                  ),)
+            ,),           
               Row(
                 children: [
                   Container(
                     margin: const EdgeInsets.only(
                       left: 10, top: 10
                     ),
-                    height: 50,
-                    width: 50,
+                    height: 70,
+                    width: 70,
                     decoration: BoxDecoration(
                         borderRadius:
                             BorderRadius.circular(40.0),
@@ -1010,6 +1096,7 @@ class MyDialog2 extends StatelessWidget {
                     child: Text(
                       "NNU",
                       style: TextStyle(
+                        fontSize: 25,
                         color: Color(0xff003566),
                           fontWeight: FontWeight.bold),
                     ),
@@ -1017,10 +1104,18 @@ class MyDialog2 extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(height: 40,),
-              Container(
+             // Container(height: 40,),
+             // Container(
 
-              child: TextField(  
+              //child:Column(
+                //children: [
+                Text("Reason of Deletion",
+                style: TextStyle(
+                  fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 30, 92),
+                  ),),
+               TextField(  
                     controller: TextEditingController(text: Reason),                            
                     maxLines: 5,
                     minLines: 5,
@@ -1031,7 +1126,7 @@ class MyDialog2 extends StatelessWidget {
                     ),
                     decoration: InputDecoration(
                       
-                       border: InputBorder.none,
+                       //border:,
                        focusedBorder: InputBorder.none,
                       // Optionally, you can customize the appearance of the text field
                       contentPadding: EdgeInsets.symmetric(
@@ -1039,12 +1134,22 @@ class MyDialog2 extends StatelessWidget {
                      // hintText: "Please Write why you freeze relationship with NNU"
                     ),
                     enabled: false, // Set to false to disable the TextField
+                  ),
+
+               // ],
+              //),
+             // ),
+
+              SizedBox(height: 10,),
+              //Container(
+                Text("Date of Deletion",
+                style: TextStyle(
+                  fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 30, 92),
                   ),),
-
-              Divider(height: 20,),
-              Container(
-
-                  child: TextFormField(
+                  //child: 
+                  TextFormField(
                     controller: TextEditingController(text: DelDate),
                     style: TextStyle(
                       fontSize: 14,
@@ -1062,10 +1167,10 @@ class MyDialog2 extends StatelessWidget {
                         false, 
                   ),
 
-              ),
+              //),
 
               Divider(height: 30,),
-              ElevatedButton(
+              /*ElevatedButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
                       Color(0xff003566)), // Change color here
@@ -1078,7 +1183,7 @@ class MyDialog2 extends StatelessWidget {
                   'Send',
                   style: TextStyle(color: Colors.amber),
                 ),
-              ),
+              ),*/
           ],
         ),
       ),

@@ -15,7 +15,7 @@ import 'package:untitled4/Tabs/group.dart';
 
 String? name = "Flutter Fall23";
 String? members;
-
+/*
 class createNewGroup extends StatelessWidget {
   late String CID;
   late String cname;
@@ -56,24 +56,19 @@ class createNewGroup extends StatelessWidget {
     );
   }
 }
-
-class MyHomePage extends StatefulWidget {
+*/
+class createNewGroup extends StatefulWidget {
+  final VoidCallback onDataRefresh;
   late String CID;
   late String cname;
    late String cimg;
-  MyHomePage(String companyid, String cname,String cimg){
-    super.key;
-   this.CID=companyid;
-   this.cname=cname;
-   this.cimg=cimg;
-  }
+   createNewGroup({required this.onDataRefresh,required this.CID,required this.cname,required this.cimg});
 
   @override
-  // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState(this.CID);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<createNewGroup> {
   PageController _controller = PageController();
      final networkHandler = NetworkHandlerC();
   final networkHandlerss = NetworkHandlerS();
@@ -82,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String des="";
    String postid="";
   File? groupimg;
+  bool go=false;
   List<Map<String,dynamic>> groupmembers=[];
    List<String> groupmembersId=[];
   bool onLastPage = false;
@@ -92,7 +88,26 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-            resizeToAvoidBottomInset: true,
+    resizeToAvoidBottomInset: true,
+    appBar: AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Create New Group",
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
     body : Stack(
       
       children: [
@@ -191,11 +206,20 @@ class _MyHomePageState extends State<MyHomePage> {
                         if(_id.length>5){
                            networkHandler.updatehasgroup(postid,true);
                           await networkHandler.patchImagegroup(groupimg!.path, _id);
+                          setState(() {
+                            go=true;                            
+                          });
                           
                         }
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => MyGroupHomePage(_id,widget.CID,widget.cname,widget.cimg,groupname)));
+                        if(go){
+                        widget.onDataRefresh();
+                        Navigator.of(context).pop(true);                          
+                        }
+                       
+                        /*Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => MyGroupHomePage(_id,widget.CID,widget.cname,widget.cimg,groupname)));*/
                         // print("yes");
+
                       },
                       child: Text(
                         "done",

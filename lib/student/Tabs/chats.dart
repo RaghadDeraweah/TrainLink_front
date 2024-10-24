@@ -33,6 +33,7 @@ class Home extends StatefulWidget {
     }
   }
 class _HomeState extends State<Home> {
+  String NNU="NNU";
   final networkHandler = NetworkHandlerS();
   final networkHandlerc = NetworkHandlerC();
   List<Map<String,dynamic>> companies=[];
@@ -129,10 +130,29 @@ class _HomeState extends State<Home> {
       for(var map in companies){
         map.forEach((key, value) {
           if(key=="Name"&& value.substring(0,1)==values){
-            queryResultSet.add(map);
+              Map<String,dynamic> tempc={
+              "type":"c",
+              "Name":map['Name'],
+              "ID":map['ID'],
+              "Email":map['CEmail'],
+              "img":map['img'],
+            };
+            queryResultSet.add(tempc);
+           // queryResultSet.add(map);
           }
         });
       }
+      if(NNU.substring(0,1)==values){
+              Map<String,dynamic> tempc={
+              "type":"c",
+              "Name":"NNU Admin",
+              "ID":"000",
+              "Email":"Najah@gmail.com",
+              "img":"uploads\\000.jpg",
+            };
+            queryResultSet.add(tempc);        
+      }
+      
       print("queryResultSet=$queryResultSet");
      /* DatabaseMethods().Search(value).then((QuerySnapshot docs) {
         for (int i = 0; i < docs.docs.length; ++i) {
@@ -319,7 +339,7 @@ class _HomeState extends State<Home> {
                       height: 8.0,
                     ),
                     Text(
-                      data["CEmail"],
+                      data["Email"],
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 15.0,
@@ -369,6 +389,11 @@ class _ChatRoomListTileState extends State<ChatRoomListTile> {
     profilePicUrl=companyinfo['img'];
     id=companyinfo['ID'];
        setState(() {});
+    }else if(username.length==3){
+    name="NNU Admin";
+    profilePicUrl="uploads\\000.jpg";
+    id="000";
+           setState(() {});
     }
    /* QuerySnapshot querySnapshot = await DatabaseMethods().getUserInfo(username.toUpperCase());
     name = "${querySnapshot.docs[0]["Name"]}";

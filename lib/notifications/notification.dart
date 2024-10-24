@@ -2,12 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 /*import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -376,3 +370,207 @@ class MetaCard extends StatelessWidget {
     );
   }
 }*/
+//import 'dart:js_interop';
+
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
+import 'package:untitled4/notifications/new_screen.dart';
+
+//import 'new_screen.dart';
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  String? mtoken = " ";
+  late FlutterLocalNotificationsPlugin  flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  TextEditingController username = TextEditingController();
+  TextEditingController title = TextEditingController();
+  TextEditingController body = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    requestPermission();
+     getToken();
+    initInfo();
+  }
+
+  initInfo(){
+    var androidInitialize = const AndroidInitializationSettings('@mipmap/ic_launcher');
+    //var iOSInitialize = const IOSInitializationSettings();
+    //var iOSInitialize = const DarwinInitializationSettings();
+    var initialzationsSettings = InitializationSettings(android:androidInitialize);
+
+     flutterLocalNotificationsPlugin.initialize(initialzationsSettings,onDidReceiveNotificationResponse: (details) {
+       try{
+         if (details.payload != null){
+          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+            return NewPage(info: details.payload.toString());
+          }));
+         }else{
+
+         }
+       }catch(e){
+
+       }
+       return;
+     },
+      );
+    /* flutterLocalNotificationsPlugin.initialize(initialzationsSettings,onSelectNotification: (String? payload) async {
+      try{
+        if (payload != null && payload.isNotEmpty){
+
+        }else{
+
+        }
+      }catch(e){
+
+      }
+      return;
+    } );*/
+
+     FirebaseMessaging.onMessage.listen((RemoteMessage message)async {
+       print("................onMessage...............");
+       print("onMessage : ${message.notification?.title}/${message.notification?.body}}");
+       
+       BigTextStyleInformation bigTextStyleInformation = BigTextStyleInformation(
+         message.notification!.body.toString(),htmlFormatBigText: true,
+       );
+       AndroidNotificationDetails androidPlatformChannelSpecifies = AndroidNotificationDetails('dbfood', 'dbfood',importance: Importance.high,styleInformation: bigTextStyleInformation,priority: Priority.high,playSound: true);
+       NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifies);
+       await flutterLocalNotificationsPlugin.show(0, message.notification?.title,
+           message.notification?.body,
+           platformChannelSpecifics,payload: message.data['body']);
+     });
+
+  }
+  void requestPermission() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true);
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.provisional) {
+      print('User granted provisional permission');
+    } else {
+      print('User declined or has not accepted permission');
+    }
+  }
+
+  void getToken() async {
+    await FirebaseMessaging.instance.getToken().then((token) {
+      setState(() {
+        mtoken = token;
+        print("my token is $mtoken");
+      });
+       saveToken(token!);
+    });
+  }
+
+  void saveToken(String token) async {
+    await FirebaseFirestore.instance
+        .collection("UserTokens")
+        .doc("User2")
+        .set({'token': token});
+  }
+
+  void sendPushMessage(String token, String body , String title )async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':<String,dynamic>{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextFormField(
+              controller: username,
+            ),
+            TextFormField(
+              controller: title,
+            ),
+            TextFormField(
+              controller: body,
+            ),
+            GestureDetector(
+              onTap: () async {
+                print("Tapppppppppppppppppppppppppppppppped!!!!!!!1");
+                String name = username.text.trim();
+                String titleText = title.text;
+                String bodyText = body.text;
+                if (name != ""){
+                  DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(name).get();
+
+                  String token = snap['token'];
+                  print(token);
+                  sendPushMessage(token, titleText , bodyText);
+                }
+
+              },
+              child: Container(
+                margin: const EdgeInsets.all(20),
+                height: 40,
+                width: 200,
+                decoration: BoxDecoration(
+                    color: Color.fromARGB(234, 105, 158, 250),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: Colors.blue)]),
+                child: Center(
+                  child: const Text("button"),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}

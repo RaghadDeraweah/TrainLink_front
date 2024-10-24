@@ -1,28 +1,28 @@
 //import 'dart:html';
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:untitled4/BCompany.dart';
 import 'package:untitled4/GroupTaps/posts.dart';
 import 'package:untitled4/GroupTaps/showmembers.dart';
 import 'package:untitled4/GroupTaps/tasks.dart';
 import 'package:untitled4/Tabs/group.dart';
-class MyGroupHomePage extends StatelessWidget {
-late String Taskid;
-   late String idgroup;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+/*class MyGroupHomePage extends StatelessWidget {
+  final VoidCallback onDataRefresh;
+  late String Taskid;
+  late String idgroup;
   late String CID;
   late String cname;
   late String cimg;
   late String groupname;
    int selectedPage=0;
-  MyGroupHomePage(String _id,String CID ,String cname, String cimg,String groupname){
-    selectedPage=this.selectedPage;
-    super.key;
-    this.idgroup=_id;
-    this.CID=CID;
-    this.cname=cname;
-    this.cimg=cimg;
-    this.groupname=groupname;
-  }
+  MyGroupHomePage({required this.idgroup,required this.CID,required this.cname,required this.cimg,required this.groupname,required this.onDataRefresh});
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,16 +53,25 @@ late String Taskid;
       ),
     );
   }
-}
+}*/
 
-class MyGroupHomePagesS extends StatefulWidget {
-   late String idgroup;
+class MyGroupHomePage extends StatefulWidget {
+/*   late String idgroup;
+  late String CID;
+  late String cname;
+  late String cimg;
+  late String groupname;
+   int selectedPage=0;*/
+     final VoidCallback onDataRefresh;
+  late String Taskid;
+  late String idgroup;
   late String CID;
   late String cname;
   late String cimg;
   late String groupname;
    int selectedPage=0;
-  MyGroupHomePagesS(String _id,String CID ,String cname, String cimg,String groupname){
+    MyGroupHomePage({required this.idgroup,required this.CID,required this.cname,required this.cimg,required this.groupname,required this.onDataRefresh});
+ /* MyGroupHomePagesS(String _id,String CID ,String cname, String cimg,String groupname){
     selectedPage=this.selectedPage;
     super.key;
     this.idgroup=_id;
@@ -70,13 +79,13 @@ class MyGroupHomePagesS extends StatefulWidget {
     this.cname=cname;
     this.cimg=cimg;
     this.groupname=groupname;
-  }
+  }*/
 
   @override
   _MyHomePageState createState() => _MyHomePageState(selectedPage);
 }
 
-class _MyHomePageState extends State<MyGroupHomePagesS> {
+class _MyHomePageState extends State<MyGroupHomePage> {
     bool greenNow=false;
   bool yellowNow=false;
       Map<String, dynamic>  groupinfo={};
@@ -85,10 +94,28 @@ class _MyHomePageState extends State<MyGroupHomePagesS> {
   int selectedPage;
   late String IDCompany;
   bool isDataReady=false;
+
+
+
+    String messageId="";
+  String _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  Map<String,dynamic> temp={};
+String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+  length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+  Future AddMessage(String userid, String nid,Map<String, dynamic> notif) async {
+    print("inside add new noti");
+    return FirebaseFirestore.instance
+        .collection("UserTokens")
+        .doc(userid)
+        .collection("notifications")
+        .doc(nid)
+        .set(notif);
+  }
   
   _MyHomePageState(this.selectedPage);
   @override
-  void initState() {
+void initState() {
   super.initState();
       fetchData().then((_) {
       setState(() {
@@ -114,9 +141,61 @@ Future<void> fetchData() async {
     print(error);
   }
 }
+void sendPushMessage(String token, String body , String title ,String type )async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title,
+              'ID':IDCompany,
+              'img':companyinfo['img'],
+              'name':companyinfo['Name'],
+              'type':type,
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
+    return Scaffold(
+    appBar: AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              widget.onDataRefresh();
+              Navigator.of(context).pop();
+            },
+          ),
+          primary: false,
+          backgroundColor: Colors.white,
+
+        ),
+    body: DefaultTabController(
       initialIndex: selectedPage,
       length: 2,
       child: isDataReady
@@ -127,12 +206,13 @@ Future<void> fetchData() async {
       //slivers: [
         SliverAppBar(
                 backgroundColor: Colors.white,
-                expandedHeight: 300.0, 
-         
+                expandedHeight: 315.0, 
+                leading: IconButton(icon:Icon(Icons.add),color: Colors.white, onPressed: () {  },),
           //Tab Bar
           
                // expandedHeight: 470.0, 
             flexibleSpace: FlexibleSpaceBar(
+              
                  background:Column(children: [ 
                // Stack(children: [
 
@@ -184,12 +264,55 @@ Future<void> fetchData() async {
                         ),),
                         Tooltip(
                         message: "Interview Phase",                          
-                          child:IconButton(onPressed:() {
+                          child:IconButton(onPressed:() async {
+
                             if(groupinfo['phase'] =="Assessment"){
+                              for(int m=0;m<groupinfo['membersStudentId'].length;m++){
+                                    DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(groupinfo['membersStudentId'][m]).get();
+                                   if (snap.exists) {
+  // Check if the 'token' field exists in the document
+                                      if (snap.data() != null && snap['token']!= null) {
+                                        String token = snap['token'];
+                                        print(token);
+                                        sendPushMessage(token, "you have qualified for the interview phase in ${widget.cname} training", "TrainLink", 'group');
+                                        Map<String,dynamic> newtemp={
+                                              'title':'TrainLink',
+                                              'body':"you have qualified for the interview phase in ${widget.cname} training",
+                                              'time':FieldValue.serverTimestamp(),
+                                              'ID':groupinfo['cid'] ?? "",
+                                              'img':companyinfo['img'] ?? "",
+                                              'name':companyinfo['Name']?? "",
+                                              'type':'group' ,
+                                              'eid':groupinfo['_id'] ?? "",
+                                            };
+                                      messageId = getRandomString(10) ;
+                                      AddMessage(groupinfo['membersStudentId'][m], messageId, newtemp);                                        
+                                      } else {
+                                        print("The 'token' field does not exist in the document.");
+                                      }
+                                    } else {
+                                      print("Document does not exist with the specified ID.");
+                                    }
+                                   /*if(snap !=null){
+                                    String token = snap['token'];
+                                    print(token);
+                                    sendPushMessage(token, "you have qualified for the interview phase in ${widget.cname} training", "TrainLink" ,'group');
+                              }*/}
+                            setState(()  {
+                            isDataReady=false;
+                            networkHandler.updateGroupphase(groupinfo['_id'],"selection");
+                                 
+                            yellowNow=true;                         
+                            });
+                            if(yellowNow){
+                            fetchData().then((_) {
                             setState(() {
-                              yellowNow=true;
-                            networkHandler.updateGroupphase(groupinfo['_id'],"selection");                              
-                            });}
+                              isDataReady=true;
+                              yellowNow=false;
+                            });
+                            },);
+                            }
+                            }
                           }, 
                         icon: groupinfo['phase']=="selection" || yellowNow
                         ? Icon(Icons.circle,color: Colors.amber)
@@ -198,13 +321,53 @@ Future<void> fetchData() async {
                         Tooltip(
                         message: "Training Phase",                          
                           child: IconButton(
-                            onPressed:() {
+                            onPressed:() async {
+
                               if(groupinfo['phase'] =="selection"){
-                            setState(() {
-                              greenNow=true;
+                              for(int m=0;m<groupinfo['membersStudentId'].length;m++){
+                              DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(groupinfo['membersStudentId'][m]).get();
+                               if (snap.exists) {
+  // Check if the 'token' field exists in the document
+                              if (snap.data() != null && snap['token']!= null) {
+                                String token = snap['token'];
+                                print(token);
+                                sendPushMessage(token, "you have passed the final phase in ${widget.cname} training, so wait for new news", "TrainLink" ,'group');
+                                Map<String,dynamic> newtemp={
+                                              'title':'TrainLink',
+                                              'body':"you have passed the final phase in ${widget.cname} training, so wait for new news",
+                                              'time':FieldValue.serverTimestamp(),
+                                              'ID':groupinfo['cid'] ?? "",
+                                              'img':companyinfo['img'] ?? "",
+                                              'name':companyinfo['Name']?? "",
+                                              'type':'group' ,
+                                              'eid':groupinfo['_id'] ?? "",
+                                            };
+                                      messageId = getRandomString(10) ;
+                                      AddMessage(groupinfo['membersStudentId'][m], messageId, newtemp);
+                              } else {
+                                print("The 'token' field does not exist in the document.");
+                              }
+                            } else {
+                              print("Document does not exist with the specified ID.");
+                            }
+
+                              
+                            } 
+                            setState(()  {
+                             isDataReady=false;
                             networkHandler.updateGroupphase(groupinfo['_id'],"starting");
-                            networkHandler.updateStartDate(groupinfo['_id']);                              
-                            });}
+                            networkHandler.updateStartDate(groupinfo['_id']); 
+                            greenNow=true;                             
+                            });
+                            if(greenNow){
+                            fetchData().then((_) {
+                            setState(() {
+                              isDataReady=true;
+                              greenNow=false;
+                            });
+                            },);
+                            }
+                            }
                             },
                         icon: groupinfo['phase']=="starting" || greenNow
                         ? Icon(Icons.circle,color: Colors.green)
@@ -232,9 +395,18 @@ Future<void> fetchData() async {
                     icon: Icon(Icons.people_alt,color: Color.fromARGB(255, 46, 46, 46),),
                     onPressed: () {
                       //showMem
+                          setState(() {
+                            isDataReady=false;
+                          });
                            Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => showMem(groupinfo)));
+                            MaterialPageRoute(builder: (context) => showMem(groupinfo: groupinfo, onDataRefresh: (){
+                            fetchData().then((_) {
+                            setState(() {
+                              isDataReady=true;
+                            });
+                            },);                              
+                            },)));
                             //MaterialPageRoute(builder: (context) => showMem( groupinfo['_id'],widget.CID,widget.cname,widget.cimg,groupinfo['membersStudentId'],groupinfo['membersStudent'])));
                     },
                     ),
@@ -529,13 +701,14 @@ Future<void> fetchData() async {
   body:TabBarView(
           children: <Widget>[
             groupHomePage(widget.idgroup,widget.CID,widget.cname,widget.cimg),
-            TaskssList(widget.idgroup,widget.CID,widget.cname,widget.cimg,widget.groupname),
+            TaskssList(widget.idgroup,widget.CID,widget.cname,widget.cimg,widget.groupname,groupinfo['membersStudentId']),
           ],
         ),
   )
       :Center(
             child: CircularProgressIndicator(), // Loading indicator
           ),
+    )
     );
   }
 }

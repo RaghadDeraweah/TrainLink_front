@@ -26,13 +26,14 @@ class LinkWidget extends StatelessWidget {
         _launchURL(Linnk);
       },
       child: Container(
-        margin: EdgeInsets.only(top: 15, left: 10),
+        margin: EdgeInsets.only(top: 5,bottom: 5, left: 0),
         child: Text(
           'Click me to visit my project',
           style: TextStyle(
-            color: Colors.blue,
+            color: const Color(0xffff003566),
+            fontSize: 17,
             fontWeight: FontWeight.bold,
-            decoration: TextDecoration.underline,
+            //decoration: TextDecoration.underline,
           ),
         ),
       ),

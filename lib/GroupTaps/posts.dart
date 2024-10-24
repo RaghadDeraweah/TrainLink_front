@@ -12,53 +12,6 @@ import 'package:untitled4/postHomePage.dart';
 String? name = "Flutter Fall23";
 String? members;
 
-/*class groupHomePage extends StatelessWidget {
-  late String idgroup;
-  late String CID;
-  late String cname;
-  late String cimg;
-  groupHomePage(String _id,String CID ,String cname, String cimg){
-    super.key;
-    this.idgroup=_id;
-    this.CID=CID;
-    this.cname=cname;
-    this.cimg=cimg;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
- debugShowCheckedModeBanner: false,
-      home: Scaffold(
-
-        appBar: AppBar(
-          elevation: 0,
-          leading: IconButton(
-            color: const Color(0xffff003566),
-            icon: const Icon(Icons.arrow_back),
-            iconSize: 30,
-            onPressed: () {
-              Navigator.pop(context);
-              // Navigator.push(context, MaterialPageRoute(builder: (context) { MyHomePageG();}));
-              // Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));
-            },
-          ),
-          backgroundColor: Colors.white,
-          title: const Text(
-            "",
-            style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                /*color: Colors.teal*/
-                color: Color(0xff003566)),
-          ),
-        ),
-        body: MyHomePageG( this.idgroup,this.CID,this.cname,this.cimg),
-      ),
-    );
-  }
-}*/
-
 class groupHomePage extends StatefulWidget {
     late String idgroup;
   late String CID;
@@ -84,12 +37,15 @@ String? contentPost =
 class _MyHomePageState extends State<groupHomePage> {
     Map<String, dynamic>  groupinfo={};
     List<Map<String,dynamic>> groupposts=[];
+    List<Map<String,dynamic>> gps=[];
     final networkHandlerC = NetworkHandlerC();
     bool isDataReady=false;
 void initState() {
   super.initState();
   fetchData().then((_) {
     setState(() {
+     // groupposts = List.from(gps.reversed);
+     // groupposts=gps.reversed;
       isDataReady = true; // Set the flag to true when data is fetched
     });
     });
@@ -103,12 +59,13 @@ Future<void> fetchData() async {
     groupinfo.values.forEach((value) {
       print(value);
     });
-    groupposts= await networkHandlerC.getGroupsposts(widget.idgroup);
-    for (var map in groupposts) {
+    gps= await networkHandlerC.getGroupsposts(widget.idgroup);
+    for (var map in gps) {
       map.forEach((key, value) {
         print('$key: $value');
       });
     }
+    groupposts = List.from(gps.reversed);
     isDataReady=true;
   } catch (error) {
     print(error);
@@ -123,6 +80,7 @@ Future<void> fetchData() async {
         shrinkWrap: true,
             slivers: [
               SliverAppBar(
+                leading: IconButton(icon:Icon(Icons.add),color: Colors.white, onPressed: () {  },),
                 backgroundColor: Colors.white,
                 expandedHeight: 90.0, // Set the height you want for the flexible space
                 flexibleSpace: FlexibleSpaceBar(
@@ -239,9 +197,19 @@ Future<void> fetchData() async {
                                       borderRadius:
                                           BorderRadius.circular(60.0))),
                               onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => GroupPost(widget.cname,widget.CID,widget.cimg,widget.idgroup,groupinfo['groupname']),
-                                ));
+                                  setState(() {
+                                    isDataReady=false;
+                                  });
+                                  Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (context) => GroupPost(cn: widget.cname,id:widget.CID,img: widget.cimg,groupid:widget.idgroup,groupname:groupinfo['groupname'],
+                                      onDataRefresh: ()async{
+                                        fetchData().then((_) {
+                                          setState(() {
+                                            isDataReady = true; // Set the flag to true when data is fetched
+                                          });
+                                          });
+                                      },)));
+                                //));
                               },
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 13.0),
@@ -275,184 +243,7 @@ Future<void> fetchData() async {
               ],
               )
 
-      /*SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          children: [
-            Container(
-              width: 411,
-              height: 220,
-              //   color: Colors.red,
-              decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                        blurStyle: BlurStyle.outer,
-                        blurRadius: 3,
-                        color: Colors.blueGrey)
-                  ],
-                  image: DecorationImage(
-                      image:NetworkImage("http://localhost:5000/"+ groupinfo['groupImg']),
-                      fit: BoxFit.cover)),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 10),
-              child: MaterialButton(
-                onPressed: () {},
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(right: 20),
-                      child: Text(
-                        groupinfo['groupname'],
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 17,
-                      color: Colors.grey,
-                    )
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(
-                left: 20,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    groupinfo['membersStudent'].length.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  Text(
-                    " members",
-                    style: TextStyle(
-                        color: Colors.grey, fontWeight: FontWeight.w900),
-                  )
-                ],
-              ),
-            ),
-            Container(
-              width: 160,
-              margin: EdgeInsets.only(right: 210, top: 10),
-              child: MaterialButton(
-                color: Colors.blue,
-                textColor: Colors.white,
-                shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                onPressed: () {},
-                child: Row(
-                  children: [
-                    Icon(Icons.group_add_sharp),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        "Joined",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    Icon(Icons.arrow_drop_down_sharp)
-                  ],
-                ),
-              ),
-            ),
-            Divider(
-              thickness: 5,
-            ),
-            Column(
-              children: [
-                Container(
-                  width: 390.0,
-                  height: 50.0,
-                  margin: EdgeInsets.only(top: 10, bottom: 10),
-                  // color: Color(0xff003566),
-                  child: Row(
-                    children: <Widget>[
-                      Column(
-                        children: <Widget>[
-                          IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.post_add,
-                                color: Color(0xff003566),
-                                size: 40.0,
-                              ))
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(left: 10.0, top: 2.0),
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                      width: 1.0, color: Colors.grey.shade400),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(60.0))),
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => GroupPost(widget.cname,widget.CID,widget.cimg,widget.idgroup,groupinfo['groupname']),
-                                ));
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 13.0),
-                                child: Text(
-                                  "Let's announce a training!                                ",
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.blueGrey),
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(
-                  thickness: 5,
-                ),
-                StudentsPosts(
-                    "Harri",
-                    'images/Harri.jpeg',
-                    Color(0xffffc300),
-                    "Yesterday at 11:35 AM . Nablus",
-                    "21",
-                    "8 Seats",
-                    "15.Oct-9PM",
-                    "images/hr.jpeg",
-                    contentPost),
-                StudentsPosts(
-                    "Harri",
-                    'images/Harri.jpeg',
-                    Color(0xff003566),
-                    " 2 hours ago  . Nablus",
-                    "20",
-                    "15 Seats",
-                    "1.Oct-11:59PM",
-                    "images/Sponser.png",
-                    "We Are HIRING!🚩 "),
-                StudentsPosts(
-                    "Harri",
-                    'images/Harri.jpeg',
-                    Color(0xff003566),
-                    "10 mintes ago . Nablus",
-                    " - ",
-                    " - ",
-                    " - ",
-                    "images/harri-post22.png",
-                    "Breast Cancer 🎀"),
-              ],
-            )
-          ],
-        ),
-      )*/
+ 
       : Center(
             child: CircularProgressIndicator(), // Loading indicator
           ),
@@ -610,129 +401,8 @@ Widget GPosts(String ProName,String proPic,String dateAndLocation,String imagePo
                   ],
                 ),
               ),
-             /* Container(
-                width: 411.0,
-                height: 30.0,
-                // color: Colors.green,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                            width: 80,
-                            height: 30,
-                            //color: Colors.blue,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(
-                                  Icons.check,
-                                  color: Color(0xff003566),
-                                  size: 17,
-                                ),
-                                Text(
-                                  requist,
-                                  style: TextStyle(color: Color(0xff003566)),
-                                )
-                              ],
-                            ))
-                      ],
-                    ),
-                  ],
-                ),
-              ),*/
               Container(child: Divider()),
-            /*  Container(
-                width: 411.0,
-                height: 30.0,
-                //  color: Colors.pink,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Container(
-                      /* width: 137,
-                      height: 30.0,*/
-                      // color: Colors.yellow,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            iconSize: 25,
-                            icon: Icon(Icons.check),
-                            color: requistColor,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              "Request",
-                              style: TextStyle(
-                                  color: requistColor,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-            Container(
-                      /*  width: 137,
-                      height: 30.0,*/
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            iconSize: 20,
-                            icon: Icon(Icons.person_add_alt),
-                            color: Color(0xff003566),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              seats,
-                              style: TextStyle(
-                                  color: Color(0xff003566),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                   Container(
-                      /*   width: 137,
-                      height: 30.0,*/
-                      //color: Colors.yellow,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            iconSize: 20,
-                            icon: Icon(Icons.lock_clock_outlined),
-                            color: Colors.red,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              lockDate,
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            */
+
               Padding(
                 padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
                 child: Divider(

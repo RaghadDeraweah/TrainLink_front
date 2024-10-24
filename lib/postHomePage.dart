@@ -1,13 +1,20 @@
 // ignore: file_names
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:untitled4/BCompany.dart';
 
 import 'package:flutter/src/material/dropdown.dart';
+import 'package:untitled4/BStudent.dart';
 import 'package:untitled4/HomePage.dart';
+import 'dart:convert' ;
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomePost extends StatelessWidget {
+/*class HomePost extends StatelessWidget {
 String companyname="";
 String cimg="";
 String CID="";
@@ -35,7 +42,7 @@ String CID="";
           ),
           backgroundColor: Colors.white,
           title: const Text(
-            "TrainLink Post",
+            "New Training",
             style: TextStyle(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
@@ -48,27 +55,26 @@ String CID="";
     );
   }
 }
-
-class MyHomePage1 extends StatefulWidget {
+*/
+class HomePost extends StatefulWidget {
+  final VoidCallback onDataRefresh;
  late String cn ;
   late String img;
   late String id;
-   MyHomePage1(String Name,String ID,String img){
-    super.key;
-    this.cn= Name;
-    this.id= ID;
-    this.img= img;
-  }
+  
+  HomePost({required this.onDataRefresh,required this.cn,required this.id,required this.img});
+
 
   @override
   // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState(this.cn,this.id,this.img);
 }
 
-class _MyHomePageState extends State<MyHomePage1> {
+class _MyHomePageState extends State<HomePost> {
   late String cn ;
   late  String img="";
   late String id;
+  List<Map<String,dynamic>> students=[];
   String dropdownValue = "Flutter";
   String dropdownValuesemester = "Fall";
   String Location ="Nablus";
@@ -78,12 +84,24 @@ class _MyHomePageState extends State<MyHomePage1> {
   TextEditingController seats = TextEditingController();
   TextEditingController hours = TextEditingController();
   final networkHandler = NetworkHandlerC();
+  final networkHandlers = NetworkHandlerS();
   _MyHomePageState(String Name,String ID,String img){
     this.cn= Name;
     this.id= ID;
     this.img= img;
 
   }
+  void initState() {
+  super.initState(); 
+  fetchData();
+}
+Future<void> fetchData() async {
+  try {
+    students= await networkHandlers.fetchStudents();
+  } catch (error) {
+    print(error);
+  }
+}
 
 
   DateTime _dateTime = DateTime.now();
@@ -111,16 +129,89 @@ class _MyHomePageState extends State<MyHomePage1> {
     });
   }
 
+
+  void sendPushMessage(String token, String body , String title ,String type ,String postid)async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title,
+              'ID':widget.id,
+              'img':widget.img,
+              'name':widget.cn,
+              'type':"newpost",
+              'eid':postid
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
+   String messageId="";
+  String _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  Map<String,dynamic> temp={};
+String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+  length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+  Future AddMessage(String userid, String nid,Map<String, dynamic> notif) async {
+    print("inside add new noti");
+    return FirebaseFirestore.instance
+        .collection("UserTokens")
+        .doc(userid)
+        .collection("notifications")
+        .doc(nid)
+        .set(notif);
+  }
+ 
+ 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     String url = "http://localhost:5000/$img";
-    return SingleChildScrollView(
+    return Scaffold(
+      appBar:  AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              widget.onDataRefresh();
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "New Training",
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
+      body: 
+     SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      //color: Colors.amber,
-     // child: Container(
-      //height: MediaQuery.of(context).size.height,
-      //width: MediaQuery.of(context).size.width,
         child: 
             Column(
             children: [
@@ -572,11 +663,11 @@ class _MyHomePageState extends State<MyHomePage1> {
                                                 offset: Offset.fromDirection(
                                                     BorderSide
                                                         .strokeAlignCenter),
-                                                color: Colors.blue)
+                                                color: const Color(0xffff003566))
                                           ],
                                           borderRadius:
                                               BorderRadius.circular(10),
-                                          color: Colors.blue,
+                                          color: const Color(0xffff003566),
                                         ),
                                         //padding: EdgeInsets.all(10),
                                         child: IconButton(
@@ -611,7 +702,7 @@ class _MyHomePageState extends State<MyHomePage1> {
                               // color: const Color.fromARGB(255, 210, 165, 218),
                               child: MaterialButton(
                                 child: Text("POST"),
-                                color: Colors.blue,
+                                color: const Color(0xffff003566),
                                 textColor: Colors.white,
                                 shape: const RoundedRectangleBorder(
                                     borderRadius:
@@ -637,10 +728,51 @@ class _MyHomePageState extends State<MyHomePage1> {
                                   int h= int.parse(hours.text);
                                   List appliedStuId =[];
                                   String result = await networkHandler.addpost(id, cn, img, appliedStuId, _dateTime.toString(), postContent.text, Location, se, dropdownValue,isRemotly,isUni,h,dropdownValuesemester);
-                                  if(result.length>5) {
-                                    networkHandler.patchImagepost(_selectedImage!.path.toString(), result);
+                                   
+                                  if(result.length>5)  {
+
+                                    await networkHandler.patchImagepost(_selectedImage!.path.toString(), result);
+                                    
+                                    for(int i=0;i<students.length;i++){
+                                      print("Student ===> ${students[i]['RegNum']}");
+                                      for(int j=0;j<students[i]['Interests'].length;j++){
+                                        print("Intrest ===> ${students[i]['Interests'][j]}");
+                                        if(students[i]['Interests'][j]==dropdownValue){
+                                            print("matchiiiiiiing");
+                                      DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(students[i]['RegNum']).get();                                                                          
+                                      DocumentSnapshot snap1 = await FirebaseFirestore.instance.collection("UserTokens").doc(widget.id).get();   
+                                      
+                                      if (snap.exists) {
+                                      if (snap.data() != null && snap['token']!= null && snap1['token']!= snap['token']) {
+                                        String token1 = snap['token'];
+                                        print("Tokkkkkkkkkkkkkkkkkkkkkkken = $token1");
+                                        print(token1);
+                                       sendPushMessage(token1, "New Training in $dropdownValue framework available","TrainLink" ,'newpost',result);
+                                        Map<String,dynamic> newtemp={
+                                              'title':'TrainLink',
+                                              'body':"New Training in $dropdownValue framework available","TrainLink" 
+                                              'time':FieldValue.serverTimestamp(),
+                                              'ID':widget.id ?? "",
+                                              'img':widget.img?? "",
+                                              'name':widget.cn?? "",
+                                              'type':'newpost' ,
+                                              'eid':result?? "",
+                                            };
+                                      messageId = getRandomString(10) ;
+                                      AddMessage(students[i]['RegNum'], messageId, newtemp);                                        
+                                      } else {
+                                        print("The 'token' field does not exist in the document.");
+                                      }
+                                    } else {
+                                      print("Document does not exist with the specified ID.");
+                                    }  
+                                        }
+                                      }
+                                    }
+                                    widget.onDataRefresh();
+                                    Navigator.of(context).pop(true);
                                     setState(() {
-                                       dropdownValue = "Flutter";
+                                      // dropdownValue = "Flutter";
                                        dropdownValuesemester = "Fall";
                                        Location ="Nablus";
                                        isRemotly=false;
@@ -667,7 +799,8 @@ class _MyHomePageState extends State<MyHomePage1> {
           
         
      // ),
-    );
+    ),
+  );
   }
 
   Future _pickImageFromGallery() async {

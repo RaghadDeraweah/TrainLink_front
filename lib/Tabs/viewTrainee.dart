@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
 import 'package:untitled4/BStudent.dart';
 import 'package:untitled4/student/Tabs/menu.dart';
+import 'package:untitled4/studentpage.dart';
 
 class trainee extends StatefulWidget {
   late List<dynamic> trainees;
-  trainee(this.trainees);
+  late String ID;
+  trainee(this.trainees,this.ID);
   @override
   _traineeState createState() => _traineeState(this.trainees);
 }
@@ -49,7 +51,7 @@ class _traineeState extends State<trainee> {
                   studentinfo.values.forEach((value) {
                     print(value);
                   });
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Menu(false,studentinfo)));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => stup(widget.ID,studentinfo)));
                   
                 },
               ),

@@ -64,6 +64,7 @@ late List<dynamic> stu;
   }
 }*/
 class TasDetails extends StatefulWidget {
+final VoidCallback onDataRefresh;
 late String Taskid;
 late String groupid="";
 late String loackdate;
@@ -72,17 +73,7 @@ late String SName;
 late String SImg;
 late String StatusOfSub;
 late List<dynamic> stu=[];
-   TasDetails(String Taskid,String groupid,String loackdate,String SID,String SName,String SImg,String StatusOfSub,List<dynamic> stu){
-    super.key;
-    this.Taskid= Taskid;
-    this.groupid=groupid;
-    this.loackdate=loackdate;
-    this.SID=SID;
-    this.SName=SName;
-    this.SImg=SImg;
-    this.StatusOfSub=StatusOfSub;
-    this.stu=stu;
-  }
+   TasDetails({required this.Taskid,required this.groupid,required this.loackdate,required this.SID,required this.SName,required this.SImg,required this.StatusOfSub,required this.stu, required this.onDataRefresh});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -92,7 +83,7 @@ class _MyTaskState extends State<TasDetails> {
   bool isDataReady=false;
   TextEditingController _urlController = TextEditingController();
                     
-  TextEditingController _notes = TextEditingController();
+  TextEditingController _notes = TextEditingController(text: "note");
   final networkHandlerC = NetworkHandlerC();
  final networkHandler = NetworkHandlerS();
  Map<String, dynamic> stuInfo ={};
@@ -106,8 +97,8 @@ class _MyTaskState extends State<TasDetails> {
     setState(() {
       isDataReady = true; 
       // Set the flag to true when data is fetched
-      if(widget.StatusOfSub=="Done"){
-      _urlController.text=submissionDetails['taskLink'];}
+    /*  if(widget.StatusOfSub=="Done"){
+      _urlController.text=submissionDetails['taskLink'];}*/
     });
     });
 }
@@ -180,12 +171,32 @@ Future<void> fetchData() async {
   Widget build(BuildContext context) {
     // TODO: implement build
     return  Scaffold(
-
+      appBar: AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              widget.onDataRefresh();
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Task Details",
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
       body: isDataReady
       ? CustomScrollView(
         shrinkWrap: true,
             slivers: [
               SliverAppBar(
+                leading:Icon(Icons.arrow_back_ios,color:ui.Color.fromARGB(0, 173, 189, 219) ,),
                 backgroundColor: Colors.white,
                 expandedHeight: MediaQuery.of(context).size.height,
                 // Set the height you want for the flexible space
@@ -195,7 +206,7 @@ Future<void> fetchData() async {
                   Container(height: 15,),
                   Container(
                         margin:EdgeInsets.fromLTRB(2, 7, 2, 5),
-                                    padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                      width: MediaQuery.of(context).size.width,
                      decoration: BoxDecoration(
                       shape: BoxShape.rectangle,
@@ -242,7 +253,7 @@ Future<void> fetchData() async {
                     ),
                     child: Text(submissionDetails['taskLink'],style: TextStyle(color: const ui.Color.fromARGB(255, 58, 58, 58),fontSize: 16),),
                   ),
-                  Container(height: 10,),
+                 /* Container(height: 10,),
                   Container(
                     alignment: Alignment.topLeft,
                     padding: EdgeInsets.all(10),
@@ -252,7 +263,7 @@ Future<void> fetchData() async {
                       border: Border.all(color: ui.Color.fromARGB(255, 27, 85, 124) ),
                     ),
                     child: Text("Note",style: TextStyle(color: const ui.Color.fromARGB(255, 58, 58, 58),fontSize: 16),),
-                  ),
+                  ),*/
                 Container(height: 20,)
                   ],)
                   : Column(children: [
@@ -293,7 +304,7 @@ Future<void> fetchData() async {
                     });
                       },
                 ),
-                  Container(height: 10,),
+                /*  Container(height: 10,),
                   TextFormField(
                   controller: _notes,
                   decoration: InputDecoration(
@@ -307,7 +318,7 @@ Future<void> fetchData() async {
                      _notes.text =val!; 
                     });
                       },
-                ),
+                ),*/
                 Container(
                   alignment: Alignment.bottomCenter,
                   padding: EdgeInsets.all(5),
@@ -321,6 +332,7 @@ Future<void> fetchData() async {
                     });
                     if(res.length >5){
                       networkHandlerC.updatesubmitedStuId(widget.Taskid,widget.stu);
+                      widget.onDataRefresh();
                        Navigator.of(context).pop();
                       // Navigator.popUntil(context, ttList(widget.groupid,widget.SID,widget.SName,widget.SImg) as RoutePredicate);
                      // Navigator.of(context).pushReplacement(
@@ -553,7 +565,7 @@ Widget taskVeiw(String ID,String type,String taskname,String lockdate,String sub
 }
 }
 
-Widget submissionslist (String img, String fname,  String taskLink){
+/*Widget submissionslist (String img, String fname,  String taskLink){
   return Container(
                               height: 50,
                               width: 350,
@@ -612,4 +624,4 @@ Widget submissionslist (String img, String fname,  String taskLink){
 
                             ],),
                           );
-}
+}*/

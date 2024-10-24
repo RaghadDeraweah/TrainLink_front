@@ -1,8 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:untitled4/BCompany.dart';
 import 'package:file_picker/file_picker.dart';
-class NewTask extends StatelessWidget {
+import 'dart:convert' ;
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+/*class NewTask extends StatelessWidget {
  late String cn ;
   late String img;
   late String id;
@@ -45,34 +51,84 @@ late String groupname="";
       ),
     );
   }
-}
+}*/
 
 
-class createNewtask extends StatefulWidget {
+class NewTask extends StatefulWidget {
+final VoidCallback onDataRefresh;
+late List<dynamic> studentsid;
  late String cn ;
   late String img;
   late String id;
   late String groupid="";
 late String groupname="";
-   createNewtask(String Name,String ID,String img,String groupid,String groupname){
-    super.key;
-    this.cn= Name;
-    this.id= ID;
-    this.img= img;
-    this.groupid=groupid;
-    this.groupname=groupname;
-  }
+   NewTask({required this.cn,required this.id,required this.img,required this.groupid,required this.groupname, required this.studentsid,required this.onDataRefresh});
+
 
   @override
   // ignore: library_private_types_in_public_api
   _MyTaskState createState() => _MyTaskState();
 }
-class _MyTaskState extends State<createNewtask> {
+class _MyTaskState extends State<NewTask> {
 
   TextEditingController TaskName = TextEditingController();
     TextEditingController TaskDes = TextEditingController();
   TextEditingController seats = TextEditingController();
   final networkHandler = NetworkHandlerC();
+
+  String messageId="";
+  String _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  Map<String,dynamic> temp={};
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+  length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+  Future AddMessage(String userid, String nid,Map<String, dynamic> notif) async {
+    print("inside add new noti");
+    return FirebaseFirestore.instance
+        .collection("UserTokens")
+        .doc(userid)
+        .collection("notifications")
+        .doc(nid)
+        .set(notif);
+  }
+  void sendPushMessage(String token, String body , String title ,String type )async{
+    try{
+      print("////////////////////////////////////////////////////////////////Sending");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers:<String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=AAAAmDSv3W4:APA91bELF6hUFbbWYjwqVxszPYU7273f886c9VezyyMoi2xHzzT398GwtbxQ7ecmomD9s40KleqUU0yl5NZNiuF7FRBu77cbbtWgG8pY8QqZFyTxcCPXKXNJU1a0wfmQRPB208jhNOn-'
+        },
+        body: jsonEncode(
+          <String,dynamic>{
+            'priority':'high',
+            'data':{
+              'click_action':'FLUTTER_NOTIFICATION_CLICK',
+              'status':'done',
+              'body':body,
+              'title':title,
+              'ID':widget.id,
+              'img':widget.img,
+              'name':widget.cn,
+              'type':type,
+              'eid':widget.groupid
+            },
+            "notification":<String,dynamic>{
+              "title":title,
+              "body":body,
+              "android_channel_id":"dbfood"
+            },
+            "to":token,
+          }
+        )
+      );
+    }catch(e){
+      if(kDebugMode){
+        print("Error sending push notification: $e");
+      }
+    }
+  }
 
 
 
@@ -115,7 +171,27 @@ class _MyTaskState extends State<createNewtask> {
   }
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Scaffold(
+    appBar: AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "New Task",
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
+    body:SingleChildScrollView(
         child: 
             Column(
             children: [
@@ -210,7 +286,7 @@ class _MyTaskState extends State<createNewtask> {
                           hintText:" Write Task Description",
                           focusedBorder:  OutlineInputBorder(borderSide: BorderSide(
                             width: 1,
-                            color: Color.fromARGB(255, 31, 12, 160),    ),
+                            color: const Color.fromARGB(255, 12, 50, 82),    ),
                             //borderRadius: BorderRadius.circular(15), 
                             ),
                       ),
@@ -257,13 +333,13 @@ class _MyTaskState extends State<createNewtask> {
                                     },
                                     icon: Icon(
                                       Icons.alarm,
-                                      color: Color.fromARGB(255, 31, 12, 160),
+                                      color: const Color.fromARGB(255, 12, 50, 82),
                                     ),
                                   ),
                                   Text(
                                     _timeOfDay.format(context).toString(),
                                     style: TextStyle(
-                                      color: Color.fromARGB(255, 31, 12, 160),
+                                      color: const Color.fromARGB(255, 12, 50, 82),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16),
                                   )
@@ -281,7 +357,7 @@ class _MyTaskState extends State<createNewtask> {
                                     onPressed: () {
                                       _showDatePicker();
                                     },
-                                    icon: Icon(Icons.calendar_month_rounded,color: Color.fromARGB(255, 31, 12, 160),),
+                                    icon: Icon(Icons.calendar_month_rounded,color: const Color.fromARGB(255, 12, 50, 82),),
                                   ),
                                   Text(
                                     _dateTime.day.toString() +
@@ -290,7 +366,7 @@ class _MyTaskState extends State<createNewtask> {
                                         "/" +
                                         _dateTime.year.toString(),
                                     style: TextStyle(
-                                      color: Color.fromARGB(255, 31, 12, 160),
+                                      color: const Color.fromARGB(255, 12, 50, 82),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16),
                                   )
@@ -310,12 +386,12 @@ class _MyTaskState extends State<createNewtask> {
                         height: 60,
                         minWidth: 390,
                         shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0),
-                        side: BorderSide(color: Color.fromARGB(255, 31, 12, 160)),),
+                        side: BorderSide(color: const Color.fromARGB(255, 12, 50, 82)),),
                         child: MaterialButton(
                           elevation: 2,
                         onPressed: () => pickPDF(),
                         child: Text('Pick PDF',style: TextStyle(fontSize: 18),),
-                        textColor: Color.fromARGB(255, 31, 12, 160),
+                        textColor: const Color.fromARGB(255, 12, 50, 82),
                         color:Color.fromARGB(255, 248, 248, 248),
                       ),),),
                       Container(height: 10,)    ,
@@ -328,7 +404,7 @@ class _MyTaskState extends State<createNewtask> {
                         width: 130,
                          child: MaterialButton(
                                 child: Text("POST",style: TextStyle(fontSize: 20),),
-                                color: Color.fromARGB(255, 31, 12, 160),
+                                color: const Color.fromARGB(255, 12, 50, 82),
                                 textColor: Colors.white,
                                 shape: const RoundedRectangleBorder(
                                 borderRadius:
@@ -344,8 +420,39 @@ class _MyTaskState extends State<createNewtask> {
 
                                   //List appliedStuId =[];
                                  String result = await networkHandler.addgrouptask(widget.groupid,widget.id, widget.cn,widget.img, TaskName.text , _dateTime.toString(),TaskDes.text);
+                                 for(int m=0;m<widget.studentsid.length;m++){
+                                  DocumentSnapshot snap = await FirebaseFirestore.instance.collection("UserTokens").doc(widget.studentsid[m]).get();
+                                  if (snap.exists) {
+      // Check if the 'token' field exists in the document
+                                  if (snap.data() != null && snap['token']!= null) {
+                                    String token = snap['token'];
+                                    print(token);
+                                    sendPushMessage(token, "New Task Added please notice Deadline", "TrainLink" ,'group');
+                                    Map<String,dynamic> newtemp={
+                                                  'title':'TrainLink',
+                                                  'body':"New Task Added please notice Deadline",
+                                                  'time':FieldValue.serverTimestamp(),
+                                                  'ID':widget.id?? "",
+                                                  'img':widget.img ?? "",
+                                                  'name':widget.cn?? "",
+                                                  'type':'group' ,
+                                                  'eid':widget.groupid ?? "",
+                                                };
+                                          messageId = getRandomString(10) ;
+                                          AddMessage(widget.studentsid[m], messageId, newtemp);
+                                  } else {
+                                    print("The 'token' field does not exist in the document.");
+                                  }
+                                } else {
+                                  print("Document does not exist with the specified ID.");
+                                }
+
+                              
+                            }
                                   if(result.length>5) {
                                      networkHandler.uploadtask(taskpdf!.path,result);
+                                     widget.onDataRefresh();
+                                     Navigator.of(context).pop(true);
                                      setState(() {
                                                                    
                                       TaskName = TextEditingController(text: "");
@@ -451,6 +558,7 @@ class _MyTaskState extends State<createNewtask> {
           
         
      // ),
+    )
     );
   }
 

@@ -15,13 +15,15 @@ class TaskssList extends StatefulWidget {
   late String cname;
   late String cimg;
   late String groupname;
-  TaskssList(String _id,String CID ,String cname, String cimg,String groupname){
+  late List<dynamic> studentsid;
+  TaskssList(String _id,String CID ,String cname, String cimg,String groupname,List<dynamic> studentsid){
     super.key;
     this.groupid=_id;
     this.CID=CID;
     this.cname=cname;
     this.cimg=cimg;
     this.groupname=groupname;
+    this.studentsid=studentsid;
   }
 
 
@@ -64,8 +66,18 @@ Future<void> fetchData() async {
         floatingActionButton: FloatingActionButton(
           backgroundColor: ui.Color.fromARGB(255, 255, 209, 7),
           onPressed: () {
+            setState(() {
+              isDataReady=false;
+            });
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => NewTask(widget.cname,widget.CID,widget.cimg,widget.groupid,widget.groupname)));
+                MaterialPageRoute(builder: (context) => NewTask(cn: widget.cname,id:widget.CID,img: widget.cimg,groupid:widget.groupid,groupname:widget.groupname,studentsid: widget.studentsid,
+                onDataRefresh: ()async{
+                  fetchData().then((_) {
+                    setState(() {
+                      isDataReady = true; // Set the flag to true when data is fetched
+                    });
+                    });
+                },)));
             // print("yes");
           },
           child: Icon(

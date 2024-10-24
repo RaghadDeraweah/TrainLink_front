@@ -84,21 +84,31 @@ class _signupStateCOM extends State<signupCOM>{
   
 
   //functions
-  void _showDialog(BuildContext context) {
+  void _showDialog(BuildContext context , String msg , bool go) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // Return the AlertDialog widget
         return AlertDialog(
-          icon: Icon(Icons.error,color: Colors.red,size: 30,),
+          icon: Icon(Icons.error,color: Colors.red,size: 40,),
           //title: Text('Dialog Title'),
-          content: Text('You already have Accout , Go to Login '),
+          content: Text(msg,style: TextStyle(fontSize: 25),),
           actions: [
             TextButton(
               onPressed: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+                // Close the dialog
+                //Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+               if(go){
+               Navigator.of(context).popUntil((route) => route.isFirst);
+               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+               }
+               else{
+                Navigator.of(context).pop();
+               }
               },
-              child: Text('GO'),
+              child: go 
+              ?Text('GO')
+              :Text('OK')
             ),
           ],
         );
@@ -487,6 +497,7 @@ class _signupStateCOM extends State<signupCOM>{
                 ), 
                     Container(height: 10,),
                     IntlPhoneField(
+                      //controller: _CPhone,
                     focusNode: focusNode,
                     decoration: InputDecoration(
                       filled: true,
@@ -679,18 +690,25 @@ class _signupStateCOM extends State<signupCOM>{
                                 print(_Cwebsite.text);
                                 print(_Password.text);
                                 print(_ConfirmPassword.text);
-
+                                bool found= await networkHandler.checkinunicom(_CID.text);
+                                if(found){
                                 bool result = await networkHandler.registerUser(_CID.text,_CName.text,_CEmail.text,_CFeild.text,_CBD.text ,_CCity.text, _CPhone.text,_Password.text,_Cwebsite.text);
                                 print(result);
                                 if(result == true){
                                   print("Inside True");
-                                    _showDialog(context);                                
+                                    _showDialog(context,'You already have Accout , Go to Login ',true);                               
                                 }else{
                                 networkHandler.patchImage(_image!.path,_CID.text);
                                 print("Inside False");
-                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));}
+                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+                                }
+                                }
+                                else{
+                                    _showDialog(context,"Your ID incorrect",false);                                  
+                                }
+
                               }else{
-                                print("***********invalid**********");
+                                  _showDialog(context,"Failed Registeration",false);
                               }
                             },
                             /*onPressed: () {

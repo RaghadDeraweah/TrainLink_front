@@ -13,15 +13,7 @@ class welcome extends StatefulWidget{
   State<welcome> createState() => _MyAppState(); 
 }
  class _MyAppState extends State<welcome>  {
- /* int i=0;
-  bool status=true;
-  String? groupValue;
-  int? groupValue1;
-  String hobby="";
-  bool? basketball=false;
-   bool? fotball=false;
-   GlobalKey<FormState> formState= GlobalKey();
-   String? emadd;*/
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

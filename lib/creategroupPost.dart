@@ -7,7 +7,7 @@ import 'package:untitled4/BCompany.dart';
 import 'package:flutter/src/material/dropdown.dart';
 import 'package:untitled4/HomePage.dart';
 
-class GroupPost extends StatelessWidget {
+/*class GroupPost extends StatelessWidget {
 String companyname="";
 String cimg="";
 String CID="";
@@ -50,29 +50,23 @@ late String groupname="";
       ),
     );
   }
-}
+}*/
 
-class MyHomePage extends StatefulWidget {
+class GroupPost extends StatefulWidget {
+final VoidCallback onDataRefresh;
  late String cn ;
   late String img;
   late String id;
   late String groupid="";
 late String groupname="";
-   MyHomePage(String Name,String ID,String img,String groupid,String groupname){
-    super.key;
-    this.cn= Name;
-    this.id= ID;
-    this.img= img;
-    this.groupid=groupid;
-    this.groupname=groupname;
-  }
+  GroupPost({required this.cn,required this.id,required this.img,required this.groupid,required this.groupname, required this.onDataRefresh});
 
   @override
   // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState(this.cn,this.id,this.img);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<GroupPost> {
   late String cn ;
   late  String img="";
   late String id;
@@ -120,12 +114,30 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     // TODO: implement build
     String url = "http://localhost:5000/$img";
-    return SingleChildScrollView(
+    return Scaffold(
+    appBar: AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              widget.onDataRefresh();
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title:  Text(
+            widget.groupname,
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
+    body:SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      //color: Colors.amber,
-     // child: Container(
-      //height: MediaQuery.of(context).size.height,
-      //width: MediaQuery.of(context).size.width,
+
         child: 
             Column(
             children: [
@@ -510,11 +522,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 offset: Offset.fromDirection(
                                                     BorderSide
                                                         .strokeAlignCenter),
-                                                color: Colors.blue)
+                                                color: const Color.fromARGB(255, 12, 50, 82))
                                           ],
                                           borderRadius:
                                               BorderRadius.circular(10),
-                                          color: Colors.blue,
+                                          color: const Color.fromARGB(255, 12, 50, 82),
                                         ),
                                         //padding: EdgeInsets.all(10),
                                         child: IconButton(
@@ -549,7 +561,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               // color: const Color.fromARGB(255, 210, 165, 218),
                               child: MaterialButton(
                                 child: Text("POST"),
-                                color: Colors.blue,
+                                color: const Color.fromARGB(255, 12, 50, 82),
                                 textColor: Colors.white,
                                 shape: const RoundedRectangleBorder(
                                     borderRadius:
@@ -571,7 +583,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                   //List appliedStuId =[];
                                   String result = await networkHandler.addgrouppost(widget.groupid,widget.id, widget.cn,widget.img, content.text);
                                   if(result.length>5) {
-                                    networkHandler.patchImagegrouppost(_selectedImage!.path.toString(), result);
+                                    await networkHandler.patchImagegrouppost(_selectedImage!.path.toString(), result);
+                                    widget.onDataRefresh();                                     
+                                    Navigator.of(context).pop(true);
+                                  
                                   }
                                   //Navigator.push(context,MaterialPageRoute(builder: (context) {return MyHomePage(cn,id,img);}));
                                 },
@@ -588,6 +603,7 @@ class _MyHomePageState extends State<MyHomePage> {
           
         
      // ),
+    )
     );
   }
 

@@ -91,8 +91,10 @@ class _HomeScreenState extends State<HomeS> {
   List<dynamic> ss=[];
   List<Map<String, dynamic>> postss = [];
   List<String> availableframeworks=[];
+  List<String> groupsid=[];
   DateTime? dateTime ;
   Map<String, dynamic>  companyinfo={};
+  Map<String, dynamic>  stui={};
   List<Map<String, dynamic>> reversedItems=[];
   final storage = FlutterSecureStorage();
   final networkHandlerC = NetworkHandlerC();
@@ -110,8 +112,11 @@ class _HomeScreenState extends State<HomeS> {
 
 Future<void> fetchData() async {
   try {
-
+    canRate=false;
+    availableframeworks=[];
+    groupsid=[];
     companyinfo = await networkHandlerC.fetchCompanyData(widget.ID);
+    stui =await networkHandler.fetchStudentData(widget.stu['RegNum']);
     companyinfo.values.forEach((value) {
       print(value);
     });
@@ -123,10 +128,12 @@ Future<void> fetchData() async {
         print('$key: $value');
       });
     }
-    for(int i=0;i<widget.stu['finishedGroups'].length;i++){
-      if(widget.stu['finishedGroups'][i]['CID']==widget.ID && (widget.stu['finishedGroups'][i]['isRated']==false)){
+    for(int i=0;i<stui['finishedGroups'].length;i++){
+      if(stui['finishedGroups'][i]['CID']==widget.ID && (stui['finishedGroups'][i]['isRated']==false)){
         canRate=true;
-        availableframeworks.add(widget.stu['finishedGroups'][i]['framework']);
+        print("canrate=$canRate");
+        availableframeworks.add(stui['finishedGroups'][i]['framework']);
+        groupsid.add(stui['finishedGroups'][i]['groupid']);
       }
     }
     isDataReady=true;
@@ -170,7 +177,7 @@ Future<void> fetchData() async {
                 backgroundColor: Colors.white,
                 expandedHeight: 
                 canRate
-                ?345
+                ?355
                 :300.0, // Set the height you want for the flexible space
                 flexibleSpace: FlexibleSpaceBar(
                  background://Column(children: [     
@@ -250,7 +257,7 @@ Future<void> fetchData() async {
                                             if(!companyinfo['trainee'].isEmpty){
                                           Navigator.of(context).push(MaterialPageRoute(
                                           builder: (context) =>
-                                          trainee(companyinfo['trainee']),));
+                                          trainee(companyinfo['trainee'],""),));
                                           }},
                                           icon:Icon(
                                             Icons.person,
@@ -351,8 +358,21 @@ Future<void> fetchData() async {
                                         borderRadius:
                                             BorderRadius.circular(60.0))),
                                 onPressed: () {
-                                  Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => RatingPost(widget.stu,widget.ID,availableframeworks)));
+                                    setState(() {
+                                      isDataReady=false;
+                                      //availableframeworks=[];
+
+                                    });
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => RatingPost(widget.stu,widget.ID,availableframeworks,groupsid,(){
+                                        fetchData().then((_) {
+                                        setState(() {
+                                          postss = List.from(reversedItems.reversed);
+                                          isDataReady = true; // Set the flag to true when data is fetched
+                                        });
+                                        });
+                                    //isDataReady=true;
+
+                                  })));
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(vertical: 13.0),

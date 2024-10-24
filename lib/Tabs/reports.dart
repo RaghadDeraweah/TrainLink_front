@@ -72,7 +72,7 @@ class _Reports22State extends State<Reports22> {
       print("inside groups");
       map.forEach(
         (key, value) {
-        if(key=="islocked" && value==false){
+        if(key=="islocked" && value==false ){
         print("islocked passed");
         for(int i=0;i<postss.length;i++){
           print("inside loop");
@@ -496,7 +496,7 @@ DataTable tabelColumn(dropdownValueStudents, dropdownValueWeeks) {
       DataColumn(label: Text('Approval?')),
      // DataColumn(label: Text('Feedback')),
     ], rows: reports.map((Map<String, dynamic> row) {
-        return  TabelReports(dropdownValueStudents,dropdownValueWeeks,row['_id'],row['groupid'],row['StuId'],row['StuImg'], row['StuName'], row['reportpdf'], row['companyApproval']);    
+        return  TabelReports(dropdownValueStudents,dropdownValueWeeks,row['_id'],row['groupid'],row['StuId'],row['StuImg'], row['StuName'], row['reportpdf'], row['companyApproval'],dropdownValueWeeks);    
       }).toList(),
     );
   } 
@@ -509,7 +509,7 @@ DataTable tabelColumn(dropdownValueStudents, dropdownValueWeeks) {
       DataColumn(label: Text('Approval?')),
   //    DataColumn(label: Text('Feedback')),
     ], rows: reports.map((Map<String, dynamic> row) {
-        return  TabelReports(dropdownValueStudents,dropdownValueWeeks,row['_id'],row['groupid'],row['StuId'],row['StuImg'], row['StuName'], row['reportpdf'], row['companyApproval']);    
+        return  TabelReports(dropdownValueStudents,dropdownValueWeeks,row['_id'],row['groupid'],row['StuId'],row['StuImg'], row['StuName'], row['reportpdf'], row['companyApproval'],dropdownValueWeeks);    
       }).toList(),
     );
   } else {
@@ -517,11 +517,12 @@ DataTable tabelColumn(dropdownValueStudents, dropdownValueWeeks) {
      horizontalMargin: 2,
       columns: [
       DataColumn(label: Text('Name')),
+      DataColumn(label: Text('Week')),
       DataColumn(label: Text('Report')),
       DataColumn(label: Text('Approval?')),
      // DataColumn(label: Text('Feedback')),
     ], rows: reports.map((Map<String, dynamic> row) {
-        return  TabelReports(dropdownValueStudents,dropdownValueWeeks,row['_id'],row['groupid'],row['StuId'],row['StuImg'], row['StuName'], row['reportpdf'], row['companyApproval']);    
+        return  TabelReports(dropdownValueStudents,dropdownValueWeeks,row['_id'],row['groupid'],row['StuId'],row['StuImg'], row['StuName'], row['reportpdf'], row['companyApproval'],row['week']);    
       }).toList(),
 );
   }
@@ -558,7 +559,7 @@ void _showFeedbackOverlay(String reportid) {
       },
     );
   }
-DataRow TabelReports(dropdownValueStudents,dropdownValueWeeks, reportid,groupid,StuId,StuImg, name, report, seeCompany) {
+DataRow TabelReports(dropdownValueStudents,dropdownValueWeeks, reportid,groupid,StuId,StuImg, name, report, seeCompany,weeknum) {
   Color color;
   if (seeCompany) {
     color = Colors.green;
@@ -642,7 +643,46 @@ DataRow TabelReports(dropdownValueStudents,dropdownValueWeeks, reportid,groupid,
         children: [
           IconButton(
             onPressed: () {
-                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => ViewReport(dropdownValueWeeks,groupid,reportid,StuId,name,StuImg)));
+             setState(() {
+                isDataReady=false;
+              });
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ViewReport(Week:dropdownValueWeeks,groupid:groupid,reportid:reportid,StuId:StuId,StuName:name,StuImg:StuImg,
+              onDataRefresh:(){               
+             // fetchData().then((_) {
+                setState(() {
+                  
+                  for (var map in groups) {
+                  if(map['groupname']==dropdownValue){
+                    //var temp =
+                    for(int i=0; i<map['membersStudent'].length;i++){
+                      if(map['membersStudent'][i]['sname']==dropdownValueStudents){
+                        print("Found Student :"+map['membersStudent'][i]['RegNum']);
+                        if(dropdownValueWeeks=="AllWeeks" ){
+                          fetchReportsforstud(map['_id'],map['membersStudent'][i]['RegNum']);
+                          isDataReady = true;
+                        }
+                        else{
+                          fetchReportforstud(map['_id'],dropdownValueWeeks,map['membersStudent'][i]['RegNum']);
+                          isDataReady = true;
+                        }
+                      }else if(dropdownValueWeeks !="AllWeeks" && dropdownValueStudents == "AllStudent"){
+                        fetchReportsWeek(map['_id'],dropdownValueWeeks);
+                        isDataReady = true;
+                      }else if(dropdownValueWeeks=="AllWeeks" && dropdownValueStudents == "AllStudent"){
+                        fetchReports(map['_id']);
+                        isDataReady = true;
+                      }
+                    }
+                    //print("Match");
+                    //fetchReportsWeek(map['_id'],newValue!);                                                             
+                  }}                    
+                  
+                   // Set the flag to true when data is fetched
+                });
+               // });
+              })
+              )
+              );
             },
             icon: Icon(
                Icons.view_agenda,
@@ -678,11 +718,51 @@ DataRow TabelReports(dropdownValueStudents,dropdownValueWeeks, reportid,groupid,
   } else {
     return DataRow(cells: [
       DataCell(Text(name)),
+      DataCell(Text(weeknum.replaceAll(RegExp(r'[^0-9]'), ''))),
       DataCell(Row(
         children: [
           IconButton(
             onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ViewReport(dropdownValueWeeks,groupid,reportid,StuId,name,StuImg)));
+              setState(() {
+                isDataReady=false;
+              });
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ViewReport(Week:dropdownValueWeeks,groupid:groupid,reportid:reportid,StuId:StuId,StuName:name,StuImg:StuImg,
+              onDataRefresh:(){               
+             // fetchData().then((_) {
+                setState(() {
+                  
+                  for (var map in groups) {
+                  if(map['groupname']==dropdownValue){
+                    //var temp =
+                    for(int i=0; i<map['membersStudent'].length;i++){
+                      if(map['membersStudent'][i]['sname']==dropdownValueStudents){
+                        print("Found Student :"+map['membersStudent'][i]['RegNum']);
+                        if(dropdownValueWeeks=="AllWeeks" ){
+                          fetchReportsforstud(map['_id'],map['membersStudent'][i]['RegNum']);
+                          isDataReady = true;
+                        }
+                        else{
+                          fetchReportforstud(map['_id'],dropdownValueWeeks,map['membersStudent'][i]['RegNum']);
+                          isDataReady = true;
+                        }
+                      }else if(dropdownValueWeeks !="AllWeeks" && dropdownValueStudents == "AllStudent"){
+                        fetchReportsWeek(map['_id'],dropdownValueWeeks);
+                        isDataReady = true;
+                      }else if(dropdownValueWeeks=="AllWeeks" && dropdownValueStudents == "AllStudent"){
+                        fetchReports(map['_id']);
+                        isDataReady = true;
+                      }
+                    }
+                    //print("Match");
+                    //fetchReportsWeek(map['_id'],newValue!);                                                             
+                  }}                    
+                  
+                   // Set the flag to true when data is fetched
+                });
+               // });
+              })
+              )
+              );
               //ViewReport
              // networkHandlerC.downloadFile("http://localhost:5000/"+report, '${reportid}.pdf');
             },

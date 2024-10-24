@@ -11,7 +11,8 @@ import 'package:http/http.dart' as http;
 String? name = "Flutter Fall23";
 String? members;
 
-class ViewReport extends StatelessWidget {
+/*class ViewRepor extends StatelessWidget {
+
   late String groupid;
   late String reportid;
   late String StuId;
@@ -64,34 +65,22 @@ class ViewReport extends StatelessWidget {
       ),
     );
   }
-}
-class reportpage extends StatefulWidget {
-   late String Week;
+}*/
+class ViewReport extends StatefulWidget {
+   final VoidCallback onDataRefresh;
   late String groupid;
   late String reportid;
   late String StuId;
+  late String Week;
   late String StuName;
   late String StuImg;
+ ViewReport({required this.Week ,required this.groupid,required this.reportid,required this.StuId,  required this.StuName, required this.StuImg,required this.onDataRefresh});
  
-
-  //howStu(post, companyinfo, companyinfo2, companyinfo3);
-  reportpage(String Week,String groupid,String reportid,String StuId, String StuName,String StuImg){
-    super.key;
-    this.Week=Week;
-    this.groupid=groupid;
-    this.reportid=reportid;
-    this.StuId=StuId;
-    this.StuName=StuName;
-    this.StuImg=StuImg;
-
-  }
-
-
   @override
   // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState();
 }
-class _MyHomePageState extends State<reportpage> {
+class _MyHomePageState extends State<ViewReport> {
   TextEditingController feedbackController = TextEditingController();
   TextEditingController hoursController = TextEditingController();
   bool isDataReady=false;
@@ -127,7 +116,7 @@ Future<void> fetchData() async {
       print("inside groups");
       map.forEach(
         (key, value) {
-          if(key=="actualhours" && value !=null && value !="" ){
+          if(key=="hours" && value !=null && value !="" ){
             setState(() {
              hours+=int.parse(value);
             print(hours);
@@ -169,6 +158,29 @@ Future<void> fetchData() async {
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
+      appBar: AppBar(
+          elevation: 0,
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              widget.onDataRefresh();
+              Navigator.pop(context);
+              // Navigator.push(context, MaterialPageRoute(builder: (context) { MyHomePageG();}));
+              // Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage(0) ));
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Report View",
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
       body: isDataReady
       ? SingleChildScrollView(
       child :Column(children: [
@@ -468,13 +480,13 @@ Future<void> fetchData() async {
           ?  Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            Row(
+            /*Row(
               crossAxisAlignment:CrossAxisAlignment.start,
               children: [
                Text("Completed Hours in this Week ? ",style: TextStyle(fontSize: 18,color: Colors.black,fontWeight: FontWeight.bold),),
                Text(reportdetails['actualhours'],style: TextStyle(fontSize: 15,color: Colors.black,)),
             ],),
-            Container(height: 10,),
+            Container(height: 10,),*/
             Text("Your Feedback ",style: TextStyle(fontSize: 18,color: Colors.black,fontWeight: FontWeight.bold),),
             Container(width: 10,),
             //TextFieldTapRegion(child: tex)
@@ -511,7 +523,7 @@ Future<void> fetchData() async {
             //Row(
               //crossAxisAlignment:CrossAxisAlignment.start,
               //children: [
-               Text("Completed Hours in this Week ? ",style: TextStyle(fontSize: 18,color: Colors.black,fontWeight: FontWeight.bold),),
+              /* Text("Completed Hours in this Week ? ",style: TextStyle(fontSize: 18,color: Colors.black,fontWeight: FontWeight.bold),),
                
                TextField(
                   controller: hoursController,
@@ -524,7 +536,7 @@ Future<void> fetchData() async {
                     labelText: 'Hours',
                    // hintText: 'Only numbers are allowed',
                   ),
-                ),
+                ),*/
            // ],),
             Container(height: 10,),
             Text("Provide Feedback ",style: TextStyle(fontSize: 18,color: Colors.black,fontWeight: FontWeight.bold),),
@@ -545,7 +557,9 @@ Future<void> fetchData() async {
               minWidth: 200,
               shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(20.0)),
             child: MaterialButton(onPressed:() {
-              networkHandlerC.updateCompanyFeedback(widget.reportid,feedbackController.text,hoursController.text);
+              networkHandlerC.updateCompanyFeedback(widget.reportid,feedbackController.text,"0");
+              widget.onDataRefresh();
+              Navigator.of(context).pop(true);
             },
             textColor: Colors.white,
             color: Colors.amber,

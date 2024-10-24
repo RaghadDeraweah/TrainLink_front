@@ -158,7 +158,7 @@ Widget noti(numberStar, photo33, name33, contentpost33,framework) {
                       ),
                     ),
                       Text(
-                        "( "+framework+" )",
+                        framework,
                         style: TextStyle(
                           color: Color(0xffffc300),
                           fontWeight: FontWeight.bold,

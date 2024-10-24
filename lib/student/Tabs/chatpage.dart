@@ -210,8 +210,9 @@ String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => Home(widget.sinfo)));
+                      Navigator.of(context).pop();
+                     // Navigator.pushReplacement(context,
+                         // MaterialPageRoute(builder: (context) => Home(widget.sinfo)));
                     },
                     child: Icon(
                       Icons.arrow_back_ios_new_outlined,

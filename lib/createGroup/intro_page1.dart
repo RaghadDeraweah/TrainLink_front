@@ -81,9 +81,10 @@ class _IntroPage1State extends State<IntroPage1> {
             ),
             Container(
               width: 411,
-              height: 30,
+              height: 200,
               margin: EdgeInsets.only(left: 18, top: 30),
               child: DropdownButton<String>(
+                menuMaxHeight: 200,
                 underline: Container(),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,

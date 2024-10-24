@@ -139,8 +139,18 @@ Widget taskVeiw(String groupid,String taskid,String type,String taskname,String 
             margin: EdgeInsets.only(top: 8),
             //margin: EdgeInsets.only(top: 3),
           child: IconButton(onPressed:() {
+            setState(() {
+              isDataReady1=false;
+            });
              Navigator.of(context).push(
-               MaterialPageRoute(builder: (context) => TasDetails(taskid, groupid,lockdate,widget.SID,widget.SName,widget.SImg,type,submitedstudents)));
+               MaterialPageRoute(builder: (context) => TasDetails(Taskid:taskid,groupid: groupid,loackdate:lockdate,SID:widget.SID,SName:widget.SName,SImg:widget.SImg,StatusOfSub:type,stu:submitedstudents,
+               onDataRefresh: (){
+                fetchData().then((_) {
+                setState(() {
+                    isDataReady1 = true; // Set the flag to true when data is fetched
+                  });
+                  });
+               },)));
             //TasDetails
           }, 
           alignment: Alignment.topRight,

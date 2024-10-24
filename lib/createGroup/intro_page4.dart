@@ -170,7 +170,7 @@ Future<void> fetchData() async {
                               nameGroup = dropdownValue;
                             });
 
-                            for (var map in postss) {
+                            for (var map in availablepostss) {
                               if(map['field']==newValue){
                                 setState(() {
                                   selectedpostid=map['_id'];
@@ -260,13 +260,13 @@ Future<void> fetchData() async {
                               setState(() {
                                 _allUsers[index]['id_status'] = val!;
                                 if(val){
-                               for(int j=0;j<availablepostss.length;j++){
+                               /*for(int j=0;j<availablepostss.length;j++){
                                 if(availablepostss[j]['_id']==selectedpostid){
                                   if(availablepostss[j]['isUni']){
                                     networkHandler1.updateunitrain(_allUsers[index]['RegNum'], true);
                                   }
                                 }
-                              }
+                              }*/
                                   _allUsersT.add(_allUsers[index]);
                                   _allUsersIDT.add(_allUsers[index]['RegNum']);
                                   widget.getStudents(_allUsersT);

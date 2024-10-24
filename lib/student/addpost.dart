@@ -4,9 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/src/material/dropdown.dart';
 import 'package:untitled4/BStudent.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
-
-class HomePost extends StatelessWidget {
+/*class HomePost extends StatelessWidget {
   late Map<String,dynamic> stuinfo={};
 
   HomePost(Map<String,dynamic> stuinfo){super.key;
@@ -43,23 +43,47 @@ class HomePost extends StatelessWidget {
       ),
     );
   }
-}
+}*/
 
-class MyHomePage extends StatefulWidget {
+class HomePost extends StatefulWidget {
+    final VoidCallback onDataRefresh;
   late Map<String,dynamic> stuinfo={};
-  MyHomePage(Map<String,dynamic> stuinfo){super.key;
-  this.stuinfo=stuinfo;}
-  //const MyHomePage({super.key});
+  HomePost({required this.stuinfo,required this.onDataRefresh});
 
   @override
   // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState();
 }
+class Interests {
+   int Iid;
+   String Iname;
 
-class _MyHomePageState extends State<MyHomePage> {
+  Interests({ required this.Iid, required this.Iname,});
+}
+class _MyHomePageState extends State<HomePost> {
+     static List<Interests> interests = [
+   Interests(Iid:1,Iname:'Flutter'),
+    Interests(Iid:2,Iname:'React'),
+    Interests(Iid:3,Iname:'Angular'),
+    Interests(Iid:4,Iname:'Vue.js'),
+    Interests(Iid:5,Iname:'Svelte'),
+    Interests(Iid:6,Iname:'jQuery'),
+    Interests(Iid:7,Iname:'Backbone.js'),
+    Interests(Iid:8,Iname:'JavaScript'),
+    Interests(Iid:9,Iname:' Django'),
+    Interests(Iid:10,Iname:'ExpressJS '),
+    Interests(Iid:11,Iname:'Laravel'),
+    Interests(Iid:12,Iname:'ASP .NET Core'),
+    Interests(Iid:13,Iname:'Spring Boot'),
+    //Interests(Iid:1,Iname:' '),
+];
+  final _feilds = interests.map((interest) => MultiSelectItem<Interests>(interest, interest.Iname)).toList();
+  List<Interests> _selectedInterests = [];
   final networkHandler = NetworkHandlerS();
+  TextEditingController _controllerti = TextEditingController();  
   TextEditingController _controllerDes = TextEditingController();
   TextEditingController _controllerUrl = TextEditingController();
+     List<String> ss=[];
   String dropdownValue = "Flutter";
 
   DateTime _dateTime = DateTime.now();
@@ -90,11 +114,29 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Container(
-      height: 780,
-      width: 411.0,
-      //color: Colors.amber,
-      child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+          leading: IconButton(
+            color: const Color(0xffff003566),
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 30,
+            onPressed: () {
+              widget.onDataRefresh();
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Add Project",
+            style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                /*color: Colors.teal*/
+                color: Color(0xff003566)),
+          ),
+        ),
+
+      body: SingleChildScrollView(
         child: Stack(
           children: [
             Column(children: [
@@ -134,14 +176,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: 411,
                 height: 700,
                 //  color: Colors.green,
-                child: Stack(
+                child: Column(
                   children: [
                     Column(
                       children: [
                         TextField(
+                          controller: _controllerti,
+                          keyboardType: TextInputType.text,
+maxLines: 2,
+                          decoration: InputDecoration(
+                              hintText: "Project Title "),
+                          onChanged: (value) {
+                            setState(() {
+                              _controllerti.text=value;
+                            });
+                          },                         
+                        ),                        
+                        TextField(
                           controller: _controllerDes,
                           keyboardType: TextInputType.text,
-                          maxLines: 15,
+                          maxLines: 7,
                           decoration: InputDecoration(
                               hintText: " Describe your work. "),
                           onChanged: (value) {
@@ -164,6 +218,47 @@ class _MyHomePageState extends State<MyHomePage> {
                           },                            
                           ),
                         ),
+                        Container(height: 10,),
+                    MultiSelectDialogField(
+                      dialogHeight: 160,
+                      items: _feilds,
+                      
+                      title: Text("Interests",style: TextStyle(color:Color.fromARGB(255, 10, 1, 71)),),
+                      selectedColor:Color.fromARGB(255, 10, 1, 71),
+                      decoration: BoxDecoration(                       
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                        border: Border.all(
+                          color:  Color.fromARGB(255, 133, 133, 133),
+                          //width: ,
+                        ),
+                      ),
+                      buttonIcon: Icon(
+                        
+                        Icons.keyboard_double_arrow_down_outlined,
+                        color: Color.fromARGB(255, 95, 95, 95),
+                      ),
+                      
+                      buttonText: Text(
+                        "frameworks",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 107, 106, 106),
+                          fontSize: 17,
+                        ),
+                      ),
+                      onConfirm: (results) {
+                        _selectedInterests = results;
+                      },
+                      onSelectionChanged: (p0) {
+                        setState(() {
+                         _selectedInterests = p0;
+                      });
+                       
+                      },
+                      onSaved: (newValue) {
+                        _selectedInterests = newValue!;
+                      },
+              ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -171,18 +266,25 @@ class _MyHomePageState extends State<MyHomePage> {
                               width: 130,
                               height: 50,
                               margin: EdgeInsets.only(
-                                  bottom: 100, top: 10, left: 250),
+                                  bottom: 100, top: 10, left: 50,right: 50),
                               // color: const Color.fromARGB(255, 210, 165, 218),
                               child: MaterialButton(
                                 child: Text("POST"),
-                                color: Colors.blue,
+                                color:const Color(0xffff003566),
                                 textColor: Colors.white,
                                 shape: const RoundedRectangleBorder(
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                                 onPressed: () async{
-                                  String postid= await networkHandler.addstupost(widget.stuinfo['RegNum'],widget.stuinfo['fname']+" "+widget.stuinfo['lname'],widget.stuinfo['img'],_controllerDes.text,_controllerUrl.text);
-                                  if(postid.length>5){print("Post added");}
+                                  for(int i=0;i<_selectedInterests.length;i++)
+                                ss.add(_selectedInterests[i].Iname);
+                                  String postid= await networkHandler.addstupost(widget.stuinfo['RegNum'],widget.stuinfo['fname']+" "+widget.stuinfo['lname'],widget.stuinfo['img'],_controllerti.text,_controllerDes.text,_controllerUrl.text,ss);
+                                  if(postid.length>5){print("Post added");
+                                  widget.onDataRefresh();
+                                  Navigator.of(context).pop();
+
+                                  }
+                                  
                                   setState(() {
                                     _controllerDes.text="";
                                     _controllerUrl.text="";

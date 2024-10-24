@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled4/student/Tabs/contacts.dart';
-import 'package:untitled4/student/Tabs/educational.dart';
-import 'package:untitled4/student/Tabs/projects.dart';
+import 'package:untitled4/student/Tabs/edu.dart';
+import 'package:untitled4/student/Tabs/personal.dart';
+import 'package:untitled4/student/Tabs/proj.dart';
 import 'package:untitled4/student/Tabs/trainging.dart';
 
 
@@ -108,7 +109,7 @@ class _MenuState extends State<Menu> {
                         Container(
                             margin: EdgeInsets.only(top: 10),
                             child: Text(
-                              widget.stuinfo['Major'],
+                              widget.stuinfo['SEmail'],
                               style: TextStyle(
                                   color: Color.fromARGB(144, 0, 53, 102),
                                   // fontWeight: FontWeight.bold,
@@ -130,7 +131,7 @@ class _MenuState extends State<Menu> {
                         MaterialButton(
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => educational(widget.stuinfo)));
+                                builder: (context) => edu(widget.stuinfo)));
                             // print("yes");
                           },
                           child: Container(
@@ -252,7 +253,8 @@ class _MenuState extends State<Menu> {
                         MaterialButton(
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => projects(widget.stuinfo,widget.fromstu)));
+                                builder: (context) => proj(widget.stuinfo)));
+                          //projects(widget.stuinfo,widget.fromstu)
                           },
                           child: Container(
                             width: 160,
@@ -308,7 +310,7 @@ class _MenuState extends State<Menu> {
                         MaterialButton(
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => contacts3(widget.stuinfo)));
+                                builder: (context) => personal(widget.stuinfo)));
                           },
                           child: Container(
                             width: 160,
@@ -340,7 +342,7 @@ class _MenuState extends State<Menu> {
                                           color: Color.fromARGB(36, 0, 53, 102),
                                         ),
                                         child: Icon(
-                                          Icons.phone,
+                                          Icons.person,
                                           color: Color(0xff003566),
                                           size: 35,
                                         ),
@@ -348,7 +350,7 @@ class _MenuState extends State<Menu> {
                                       Container(
                                         margin: EdgeInsets.only(top: 15),
                                         child: Text(
-                                          "Contact",
+                                          "Personal",
                                           style: TextStyle(
                                               color: Color(0xff003566),
                                               fontWeight: FontWeight.w600),

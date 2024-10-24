@@ -25,10 +25,13 @@ class _GroupScreenState extends State<GroupScreen> {
 
 List<Map<String,dynamic>> groupposts=[];
 List<Map<String,dynamic>> groups=[];
+List<Map<String,dynamic>> initgroups=[];
+List<Map<String,dynamic>> gs=[];
 List<int> members=[];
 final networkHandlerC = NetworkHandlerC();
 final networkHandler = NetworkHandlerS();
 bool isDataReady=false;
+bool deleteed=false;
 bool search=false;
 bool lockednow=false;
 TextEditingController _group = TextEditingController();
@@ -44,8 +47,14 @@ void initState() {
 Future<void> fetchData() async {
   try {
 
-    groups = await networkHandlerC.getGroups(widget.CID!);
-    for (var map in groups) {
+    initgroups = await networkHandlerC.getGroups(widget.CID!);
+    for(int k=0;k<initgroups.length;k++){
+      if(initgroups[k]['isDel']==false){
+        groups.add(initgroups[k]);
+        members.add(initgroups[k]['membersStudent'].length);
+      }
+    }
+    /*for (var map in groups) {
       map.forEach((key, value) {
         print('$key: $value');
         if(key=="membersStudent"){
@@ -53,14 +62,14 @@ Future<void> fetchData() async {
           print(members);
         }
       });
-    }
-    groupposts= await networkHandlerC.getGroupspostsid(widget.CID);
-    for (var map in groupposts) {
+    }*/
+    gs= await networkHandlerC.getGroupspostsid(widget.CID);
+    for (var map in gs) {
       map.forEach((key, value) {
         print('$key: $value');
       });
     }
-
+    groupposts=List.from(gs.reversed);
     isDataReady=true;
   } catch (error) {
     print(error);
@@ -75,8 +84,22 @@ Future<void> fetchData() async {
         floatingActionButton: FloatingActionButton(
           backgroundColor: Color(0xffffc300),
           onPressed: () {
+            setState(() {
+            groups=[];
+            members=[];
+            isDataReady=false;
+          });
+            /*setState(() {
+              isDataReady=false;
+            });*/
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => createNewGroup(widget.CID,widget.cname,widget.cimg)));
+                MaterialPageRoute(builder: (context) => createNewGroup(onDataRefresh: ()async{
+                fetchData().then((_) {
+                  setState(() {
+                    isDataReady = true; // Set the flag to true when data is fetched
+                  });
+                  });                  
+                } ,CID: widget.CID,cname: widget.cname,cimg: widget.cimg)));
             // print("yes");
           },
           child: Icon(
@@ -192,12 +215,24 @@ Future<void> fetchData() async {
           ),
     );
   }
-  Widget Groupss(String _id,String cid,String cname,String cimg,String name,String memebers,String gimg,bool islocked,membersid, context) {
+  Widget Groupss(String _id,String cid,String cname,String cimg,String name,String mems,String gimg,bool islocked,membersid, context) {
   return MaterialButton(
     onPressed: () {
+      setState(() {
+        groups=[];
+        members=[];
+        isDataReady=false;
+      });
       Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => MyGroupHomePage(_id,cid,cname,cimg,name)));
+              MaterialPageRoute(builder: (context) => MyGroupHomePage(idgroup: _id,CID: cid,cname: cname,cimg:cimg,groupname: name,
+               onDataRefresh:(){
+              fetchData().then((_) {
+                setState(() {
+                  isDataReady = true; // Set the flag to true when data is fetched
+                });
+                });
+               },)));
     },
     child: Container(
       //  color: Colors.blue.shade300,
@@ -231,21 +266,34 @@ Future<void> fetchData() async {
                 onPressed: () {
                   print(!islocked);
                    setState(() {
-                    
+                    isDataReady=false;
                      networkHandlerC.updateislocked(_id,!islocked);
                      if(islocked==false){
-                      lockednow=true;
                       networkHandlerC.updateEndDate(_id);
                       for(int i=0;i<membersid.length;i++){
                       networkHandler.updategroupidstud(membersid[i], "", true);
                       networkHandler.updatepostidstud(membersid[i], "", false);
                       }
-
+                      groups=[];
+                      members=[];
+                      lockednow=true;
+                     }else{
+                      groups=[];
+                      members=[];
+                      lockednow=true;                      
                      }
-                    Navigator.pushReplacement(context,
+                   /* Navigator.pushReplacement(context,
                           MaterialPageRoute(builder: (context) => GroupScreen(widget.CID,widget.cname,widget.cimg)));
-                     islocked=!islocked;
+                     islocked=!islocked;*/
                   });
+                  if(lockednow){
+                  fetchData().then((_) {
+                    setState(() {
+                      isDataReady = true;
+                      lockednow=false; // Set the flag to true when data is fetched
+                    });
+                    });                    
+                  }
                   
                 },
                
@@ -262,9 +310,24 @@ Future<void> fetchData() async {
                   print(!islocked);
                   if(islocked){
                     setState(() {
-                      networkHandlerC.deleteGroup(_id);
+                      isDataReady=false;
+                      networkHandlerC.updateDel(_id, true);
+                      groups=[];
+                      members=[];
+                      deleteed=true;
+                      //networkHandlerC.deleteGroup(_id);
                     });
-                    Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => GroupScreen(widget.CID,widget.cname,widget.cimg)));
+                    if(deleteed){
+                    fetchData().then((_) {
+                    setState(() {
+                      isDataReady = true;
+                      deleteed=false; // Set the flag to true when data is fetched
+                    });
+                    });                       
+                    }
+
+                    //Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => GroupScreen(widget.CID,widget.cname,widget.cimg)));
+
                   }                  
                 },
                
@@ -291,7 +354,7 @@ Future<void> fetchData() async {
                     Container(
                       margin: EdgeInsets.only(top: 5),
                       child: Text(
-                        memebers,
+                        mems,
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade400,
