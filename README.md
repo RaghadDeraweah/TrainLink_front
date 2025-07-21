@@ -2,6 +2,8 @@
 
 **TrainLink** is a cross-platform internship management system built to connect university students with training opportunities, while supporting companies and university supervisors throughout the entire training process. Developed as a graduation project at An-Najah National University.
 
+[Watch Demo Video](https://drive.google.com/file/d/13uykmlVCslgw5Ep7un2gShnaWpRYf6py/view?usp=sharing)
+
 ---
 
 ## 📌 Features
